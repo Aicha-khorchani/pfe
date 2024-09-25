@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #ececec;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Add this */
+    min-height: 100vh;
+}
+
+footer {
+    margin-top: auto; /* Add this */
+    display: block;
+    clear: both;
+    width: 100%;
+    background-color: #3044a5;
+    color: white;
+    padding: 20px 0;
+}
+footer .footer-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Adjust columns as needed */
+    gap: 20px; /* Add spacing between sections */
+    padding: 40px; /* Add padding to the footer container */
+}
+footer .sec {
+    width: 100%;
+}
+
+
+  /* Update Font Awesome icons */
+.sci i {
+    font-size: 20px;
+    margin-right: 10px;
+    font-family: 'Font Awesome 6 Free'; /* Add this */
+}
+
+.copyrightText {
+    text-align: center;
+    padding: 10px;
+    background-color: #202020;
+    color: #fff;
+}
+
+footer .container .sec h2
+{ 
+    position: relative;
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 15px;
+   
+}
+.sci li a .fa {
+    color: #fff;
+    font-size: 20px;
+}
+
+
+footer .container .sec h2:before
+{
+    content:'';
+    position: absolute;
+    top:100%;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: #ffeb3b;
+}
+
+footer .container .sec p
+{
+  color: #fff;
+}
+
+.sci
+{
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(4,50px);
+    grid-gap: 10px;
+}
+
+.sci li
+{
+    list-style: none;
+}
+
+.sci li a
+{
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    background: #3e56cb;
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.sci li a:hover
+{
+    background: #6380fe;
+}
+
+.quicklinks
+{
+    position: relative;
+}
+
+.quicklinks li
+{
+    list-style: none;
+}
+
+.quicklinks li a
+{
+    color: #f7f7f7;
+    text-decoration: none;
+    margin-bottom: 10px;
+    display: inline-block;
+
+}
+
+.quicklinks li a:hover
+{
+    color:#ffeb3b;
+}
+
+.info
+{
+    position: relative;
+
+}
+.info li
+{
+    display: grid;
+    grid-template-columns: 30px 1fr ;
+    margin-bottom: 16px;
+}
+.info li span:nth-child(1)
+{
+    color: #fff;
+    font-size: 20px;
+}
+
+.info li span
+{
+    color: #fff;
+}
+.info a 
+{
+    color: #f7f7f7;
+    text-decoration: none;
+}
+.info a:hover
+{
+    color: #ffeb3b;
+}
+
+
+.sci li a .fa
+{color: #fff;
+    font-size: 20px;
+}
+/**li i3ml footer responsive*/
+@media(max-width: 991px)
+{
+    footer
+    {
+     padding: 40px;
+    }
+    footer .container
+    {
+        grid-template-columns: repeat(2,1fr);
+    }
+    .copyrightText{
+        padding: 8px 40px;
+    }
+}
+@media(max-width: 768px)
+{
+    footer .container
+    {
+        grid-template-columns: repeat(1,1fr);
+    }
+}
+
+/*------------ Login container ------------*/
+
+.box-area{
+    width: 930px;
+}
+
+/*------------ Right box ------------*/
+
+.right-box{
+    padding: 40px 30px 40px 40px;
+}
+
+/*------------ Custom Placeholder ------------*/
+
+::placeholder{
+    font-size: 16px;
+}
+
+.rounded-4{
+    border-radius: 20px;
+}
+.rounded-5{
+    border-radius: 30px;
+}
+
+
+/*------------ For small screens------------*/
+
+@media only screen and (max-width: 768px){
+
+     .box-area{
+        margin: 0 10px;
+
+     }
+     .left-box{
+        height: 100px;
+        overflow: hidden;
+     }
+     .right-box{
+        padding: 20px;
+     }
+
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr; /* One column */
+    gap: 10px; /* Gap between grid items */
+}
+
+/* Style for the buttons */
+.grid-item {
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* Apply Bootstrap styles to the specific button */
+#button1 {
+    /* Additional Bootstrap styles */
+    font-size: 1.5rem; /* Custom font size (fs-6 equivalent to Bootstrap's 1.5rem) */
+    width: 100%; /* Make it 100% width */
+}
+/* Bootstrap styles for button 1 */
+#button1.btn-primary {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+    min-width: 150px;
+    width: auto;
+}
+/* Style for the search container */
+.search-container {
+    display: flex;
+    max-width: 400px; /* Adjust the maximum width as needed */
+    margin: 20px auto; /* Center the container horizontally */
+}
+
+/* Style for the search bar input */
+.search-bar {
+    flex: 1; /* Take up remaining width in the container */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px; /* Rounded corners on the left */
+}
+
+/* Style for the search button */
+.search-button {
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+    border-radius: 0 5px 5px 0; /* Rounded corners on the right */
+    cursor: pointer;
+}
+.navbar .btn {
+    margin-right: 10px;
+}

@@ -1,0 +1,126 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'main.js' %}"></script>
+    <title>COM ARKEYEZ | searched order</title>
+</head>
+<body>
+
+    <!----------------------- Main Container -------------------------->
+
+     <div class="container d-flex justify-content-center align-items-center min-vh-100">
+
+    <!----------------------- Login Container -------------------------->
+
+       <div class="row border rounded-5 p-3 bg-white shadow box-area">
+
+    <!-------------------- ------ Right Box ---------------------------->
+        
+          <div class="row align-items-center">
+                <div class="header-text mb-4">
+                     <h3>the order you searched for </h3>
+                </div> 
+                <div class="search-container">
+                    <form class="d-flex" methode="GET" action="{% url 'searchcustomers' %}"> 
+                        {% csrf_token %}
+                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" placeholder="Search by ID, name, date, or phone number...">
+                        <button class="search-button btn btn-primary" type="submit">Search</button>
+                    </form>
+                </div>
+                    <div class="container mt-5">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer ID</th>
+                                    <th>Order Date</th>
+                                    <th>Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.order }}</td>
+                                    <td>{{ order.customer }}</td>
+                                    <td>{{ order.order_date }}</td>
+                                    <td>{{ order.total_amount }}</td>
+            </tr>
+        </tbody>
+        {% empty %}
+            <tr>
+                <td colspan="4">No customers found.</td>
+            </tr>
+        {% endfor %}
+    </table> </div>
+</div>
+<div class="input-group mb-3 d-flex justify-content-center">
+    <a href="{% url 'home' %}">
+        <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">home</button>
+    </a>
+</div>
+</div>
+</div> 
+</div>
+</div>
+<footer>
+    <div class="footer-container">
+      <div class="container">
+         <div class="sec aboutus">
+            <h2>About Us</h2>
+            <p>arkeyes is a startup that makes ERP CRM solutions to make your work easier, digital, and more efficient.</p>
+            <ul class="sci">
+             <li><a href="#"><i class="fa-brands fa-linkedin"r></i></a></li>
+             <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
+             <li><a href="#"><i class="fa-brands fa-youtube"></i></a></li>
+             <li><a href="#"><i class="fa-solid fa-envelope"></i></a></li>
+           </ul>
+         </div>
+        </div>
+    
+        
+         <div class="container">
+         <div class="sec quicklinks">
+            <h2>Quick Links</h2>
+            <ul>
+               <li><a href="#">About</a></li>
+               <li><a href="#">Privacy Policy</a></li>
+               <li><a href="#">Help</a></li>
+               <li><a href="#">Terms & Conditions</a></li>
+               <li><a href="#">Contact</a></li>
+            </ul>
+         </div>
+        </div>
+    
+        <d class="container">
+         <div class="sec contact">
+            <h2>Contact Us</h2>
+            <ul class="info">
+               <li><span><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+                  <span>Tunisia<br>Tataouine Nord<br>Cyber Park 3200</span>
+               </li>
+               <li><span><i class="fa fa-phone" aria-hidden="true"></i></span>
+                  <p><a href="tel:20 890 113">20 890 113</a><br></p>
+               </li>
+               <li><span><i class="fa fa-envelope" aria-hidden="true"></i></span>
+                  <p><a href="mailto:info@arkeyes.com">info@arkeyes.com</a></p>
+               </li>
+            </ul>
+         </div>
+        </div>
+    
+      </div>
+    </footer>
+    <div class="copyrightText">
+        <p>Copyright 2024 Aicha Khorchani. All rights reserved.</p>
+      </div>
+</body>
+</html>

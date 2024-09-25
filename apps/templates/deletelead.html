@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | lead</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+            <a class="navbar-brand" >ARKEYEZ</a>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+                </li> <span> </span >
+                <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+                </li>
+            </ul>
+                <div class="search-container">
+                    <form class="d-flex" method="GET" action="{% url 'searchcustomers' %}">
+                        {% csrf_token %}
+                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
+                        <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
+                    </form>
+                </div>
+            </div>
+    </nav>
+    <!----------------------- Main Container -------------------------->
+     <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <!----------------------- Login Container -------------------------->
+     <div class="row border rounded-5 p-3 bg-white shadow box-area">
+        <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background: #103cbe;">
+            <img src="{% static 'images/1.png' %}" class="img-fluid" style="width: 250px;" alt="Your Image">
+            <p class="text-white fs-2" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;">Go Digital</p>
+            <small class="text-white text-wrap text-center" style="width: 17rem;font-family: 'Courier New', Courier, monospace;">Enjoy a better experience with ARKEYEZ Customer Sales Order Management System
+         </small>
+        </div> 
+    <!-------------------- ------ Right Box ---------------------------->
+        
+       <div class="col-md-6 right-box">
+          <div class="row align-items-center">
+                <div class="header-text mb-4">
+                     <h2>delete or archive a lead</h2>
+                     <h3>warning :once a lead gets deleted you can't restore it!</h3></br>
+                     <h3>warning :archived lead are leads that can be restored in the future...</h3>
+
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+
+                <div class="input-group mb-3 d-flex justify-content-center">
+                    <a href="{% url 'delete_lead' %}">
+                    <button type="submit" class="btn btn-lg btn-primary w-100 fs-6 btn-custom"  onclick="return confirm('Are you sure you want to delete this lead?')" style="min-width: 200px;">delete lead</button>
+                    </a>
+                </div>
+            </form>
+            <div class="input-group mb-3 d-flex justify-content-center">
+                    <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" onclick="return confirm('Are you sure you want to archive this lead?')" style="min-width: 200px;">archive lead</button>
+                    </a>
+                </div>
+          </div>
+       </div> 
+      </div>
+    </div>
+       
+<footer>
+    <div class="footer-container">
+      <div class="container">
+         <div class="sec aboutus">
+            <h2>About Us</h2>
+            <p>An all-in-one web application designed to streamline sales and inventory management. Track and manage leads, clients, and their data with ease. Add, delete, and update products and their variants, handle orders, monitor client volumes, and manage retailers. With secure login, registration, and logout features, the app also organizes stock efficiently, giving users full control over their business operations.</p>
+            <ul class="sci">
+             <li><a href="#"><i class="fa-brands fa-linkedin"r></i></a></li>
+             <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
+             <li><a href="#"><i class="fa-brands fa-youtube"></i></a></li>
+             <li><a href="#"><i class="fa-solid fa-envelope"></i></a></li>
+           </ul>
+         </div>
+        </div>
+    
+        
+         <div class="container">
+         <div class="sec quicklinks">
+            <h2>Quick Links</h2>
+            <ul>
+               <li><a href="#">About</a></li>
+               <li><a href="#">Privacy Policy</a></li>
+               <li><a href="#">Help</a></li>
+               <li><a href="#">Terms & Conditions</a></li>
+               <li><a href="#">Contact</a></li>
+            </ul>
+         </div>
+        </div>
+    
+        <d class="container">
+         <div class="sec contact">
+            <h2>Contact Us</h2>
+            <ul class="info">
+               <li><span><i class="fa fa-map-marker" aria-hidden="true"></i></span>
+                  <span>Tunisia<br>Tataouine Nord<br>Cyber Park 3200</span>
+               </li>
+               <li><span><i class="fa fa-phone" aria-hidden="true"></i></span>
+                  <p><a href="tel:20 890 113">20 890 113</a><br></p>
+               </li>
+               <li><span><i class="fa fa-envelope" aria-hidden="true"></i></span>
+                  <p><a href="mailto:info@arkeyes.com">info@arkeyes.com</a></p>
+               </li>
+            </ul>
+         </div>
+        </div>
+    
+      </div>
+    </footer>
+    <div class="copyrightText">
+        <p>Copyright 2024 Aicha Khorchani. All rights reserved.</p>
+      </div>
+</body>
+</html>
