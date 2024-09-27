@@ -1,16 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import customer, itemvariant, orderitem, salesorder, customuser, centreddata, adddata, supplier, deliverynote, invoicenote, retour
+from .models import customer,facture ,itemvariant,itemvariant,item,customuser,lead,leaddata, supplier,bonreception, retour
 
-admin.site.register(salesorder)
+admin.site.register(item)
 admin.site.register(itemvariant)
 admin.site.register(customer)
-admin.site.register(orderitem)
-admin.site.register(centreddata)
-admin.site.register(adddata)
+admin.site.register(lead)
+admin.site.register(leaddata)
 admin.site.register(supplier)
-admin.site.register(deliverynote)
-admin.site.register(invoicenote)
+admin.site.register(bonreception)
+admin.site.register(facture)
 admin.site.register(retour)
 
 

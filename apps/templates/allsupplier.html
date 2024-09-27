@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="{% static 'main.js' %}"></script>
-    <title>COM ARKEYEZ | return</title>
+    <title>COM ARKEYEZ | Suppliers</title>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
@@ -33,49 +33,58 @@
             </ul>
         </div>
     </nav>
-<!----------------------- Main Container -------------------------->
+
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="row border rounded-5 p-3 bg-white shadow box-area">
             <div class="row align-items-center">
                 <div class="header-text mb-4">
-                    <h3>The List of All ruturns</h3>
+                    <h3>The List of All Suppliers</h3>
                 </div> 
                 <div class="container mt-5">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Client</th>
-                                <th>Product</th>
-                                <th>Quantité</th>
-                                <th>Raison</th>
-                                <th>Date</th>
-                                <th>Livreur</th>
-                                <th>Info</th>
-                                <th>Numéro</th>
-                                <th>Statut</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>Category</th>
+                                <th>Payment</th>
+                                <th>Quality</th>
+                                <th>Cost</th>
+                                <th>Interaction</th>
+                                <th>Feedback</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for retour in retours %}
+                            {% for supplier in suppliers %}
+                
                             <tr>
-                                <td>{{ retour.client }}</td>
-                                <td>{{ retour.produit }}</td>
-                                <td>{{ retour.quantite_retournee }}</td>
-                                <td>{{ retour.raison_retour }}</td>
-                                <td>{{ retour.date_retour }}</td>
-                                <td>{{ retour.livreur }}</td>
-                                <td>{{ retour.Informations_supp }}</td>
-                                <td>{{ retour.numero_c }}</td>
-                                <td>{{ retour.statut_retour }}</td>
+                                <td>{{ supplier.supplier_id }}</td>
+                                <td>{{ supplier.supplier_name }}</td>
+                                <td>{{ supplier.contact_info }}</td>
+                                <td>{{ supplier.address }}</td>
+                                <td>{{ supplier.categories_supplied }}</td>
+                                <td>{{ supplier.payment_terms }}</td>
+                                <td>{{ supplier.product_quality }}</td>
+                                <td>{{ supplier.cost }}</td>
+                                <td>{{ supplier.interaction_quality }}</td>
+                                <td>{{ supplier.feedback }}</td>
+                                <td><a href="{% url 'updatesupplier' supplier.supplier_id  %}" >edit </a></td></tr>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="11">No return.</td>
+                                <td colspan="11">No suppliers available.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="input-group mb-3 d-flex justify-content-center">
+                <a href="{% url 'delete_supplier' %}">
+                <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">delete supplier</button>
+                </a>
             </div>
         </div> 
     </div>

@@ -14,7 +14,25 @@
     <title>COM ARKEYEZ | searched product</title>
 </head>
 <body>
-
+    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+            <a class="navbar-brand" >ARKEYEZ</a>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+                </li> <span> </span >
+                <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+                </li>
+            </ul>
+                <div class="search-container">
+                   
+                </div>
+            </div>
+    </nav>
     <!----------------------- Main Container -------------------------->
 
      <div class="container d-flex justify-content-center align-items-center min-vh-100">
@@ -38,22 +56,18 @@
                         <thead>
                             <tr>
                                 <th>Product ID</th>
-                                <th>Order ID</th>
                                 <th>Product Name</th>
-                                <th>Quantity</th>
                                 <th>Unit Price</th>
-                                <th>Total Price</th>
+                                <th>volume Price</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for order_item in order_items %}
+                            {% for item in items %}
                             <tr>
-                                <td>{{ order_item.item }}</td>
-                                <td>{{ order_item.order }}</td>
-                                <td>{{ order_item.product_name }}</td>
-                                <td>{{ order_item.quantity }}</td>
-                                <td>{{ order_item.unit_price }}</td>
-                                <td>{{ order_item.total_price }}</td>
+                                <td>{{ item.item }}</td>
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ tem.unit_price }}</td>
+                                <td>{{ item.volume_price }}</td>
                             </tr>
                             {% empty %}
                                 <tr>

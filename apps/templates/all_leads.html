@@ -73,15 +73,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for centreddata in centreddatas %}
+                                {% for lead in leads %}
                                 <tr>
-                                    <td>{{ centreddata.lead }}</td>
-                                    <td>{{ centreddata.contact_person }}</td>
-                                    <td>{{ centreddata.position }}</td>
-                                    <td>{{ centreddata.contact }}</td>
-                                    <td>{{ centreddata.score }}</td>
-                                    <td>{{ centreddata.description }}</td>
-                                    <td><a href="{% url 'updatelead' centreddata.id  %}" >update lead </a></td></tr>
+                                    <td>{{ lead.lead }}</td>
+                                    <td>{{ lead.contact_person }}</td>
+                                    <td>{{ lead.position }}</td>
+                                    <td>{{ lead.contact }}</td>
+                                    <td>{{ lead.score }}</td>
+                                    <td>{{ lead.description }}</td>
+                                    <td><a href="{% url 'updatelead' lead.lead  %}" >update lead </a></td></tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="11">No lead available.</td>
+                                    </tr>
                             {% endfor %}
                             </tbody>
                         </table>

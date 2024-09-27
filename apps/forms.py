@@ -1,5 +1,5 @@
 from django import forms
-from .models import    customer, orderitem, itemvariant,centreddata
+from .models import   retour, customer, item, itemvariant,lead, supplier ,bonreception
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -20,28 +20,41 @@ class customuserCreationForm(UserCreationForm):
             })
 
 
-
-
-class centreddataForm(forms.ModelForm):
+class BonReceptionForm(forms.ModelForm):
     class Meta:
-        model = centreddata
+        model = bonreception
+        fields = [
+            'delivery_date', 
+            'delivery_address', 
+            'supplier_id', 
+            'item', 
+            'quantity_delivered', 
+            'unit_of_measure', 
+            'transportation_type', 
+            'variant_id'
+        ]
+        
+
+
+
+class leadForm(forms.ModelForm):
+    class Meta:
+        model = lead
         fields = ['company_name','contact_person', 'position', 'contact','score', 'description']
 
 
-
-
-class UpdateorderitemForm(forms.ModelForm):
+class UpdateitemForm(forms.ModelForm):
     class Meta:
-        model = orderitem
-        fields = [ 'order_id', 'product_name', 'quantity', 'unit_price', 'total_price']
+        model = item
+        fields = [  'product_name',  'unit_price', 'volume_price']
         exclude = ['item']
 
 
-class UpdateVariantForm(forms.ModelForm):
+class UpdateItemVariant(forms.ModelForm):
     class Meta:
         model = itemvariant
         fields = ['item', 'variant_name', 'variant_value']
-        exclude= [ 'variant']
+        exclude= [ 'variant_id']
 
 class customerForm(forms.ModelForm):
     class Meta:
@@ -67,8 +80,13 @@ class LoginForm(forms.Form):
 
 class UpdateLeadForm(forms.ModelForm):
     class Meta:
-        model = centreddata
+        model = lead
         fields = ['company_name','contact_person', 'position', 'contact','score', 'description']
+
+class UpdateSupplierForm(forms.ModelForm):
+    class Meta:
+        model = supplier
+        fields = ['supplier_name','contact_info', 'address', 'categories_supplied','payment_terms', 'cost', 'interaction_quality', 'feedback']
 
 
 class UpdatecustomerForm(forms.ModelForm):
@@ -76,10 +94,10 @@ class UpdatecustomerForm(forms.ModelForm):
         model = customer
         fields =['customer','customer_name','contact_person','email','phone_number' ]
 
-class orderitemForm(forms.ModelForm):
+class itemForm(forms.ModelForm):
     class Meta:
-        model = orderitem
-        fields = ['order_id', 'product_name', 'quantity', 'unit_price', 'total_price']
+        model = item
+        fields = [ 'product_name', 'unit_price', 'volume_price']
         exclude = ['item']
 
 class itemvariantForm(forms.ModelForm):
@@ -87,19 +105,27 @@ class itemvariantForm(forms.ModelForm):
         model = itemvariant
         fields = ['item', 'variant_name', 'variant_value']
         exclude = ['variant']
-
+        
 class customerDeleteForm(forms.Form):
-    customer = forms.IntegerField()
+    customer_id = forms.IntegerField()  
+    
+    
+class RetourDeleteForm(forms.Form):
+    retour_id = forms.IntegerField()  
     
 class DeleteLeadForm(forms.Form):
-    centreddata = forms.IntegerField()
+    lead = forms.IntegerField()
     
-
-class OrderDeleteForm(forms.Form):
-    order = forms.IntegerField()
+class RetourForm(forms.ModelForm):
+    class Meta:
+        model = retour
+        fields = ['supplier', 'client', 'produit', 'quantite_retournee', 'raison_retour', 'livreur', 'informations_supp', 'numero_c', 'statut_retour']
+    
+class DeleteSupplierForm(forms.Form):
+    supplier_id = forms.IntegerField()
 
 class ItemDeleteForm(forms.Form):
-    item = forms.IntegerField()
+    item_id = forms.IntegerField()
 
 class VariantDeleteForm(forms.Form):
-    variant = forms.IntegerField()
+    variant_id = forms.IntegerField()

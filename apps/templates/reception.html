@@ -12,7 +12,7 @@
  
 </head>
 
-<body>
+<body>  
    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -53,25 +53,25 @@
           <div class="header-text mb-4">
             <h2>Hello,Again</h2>
             <p>We are happy to have you back.</p>
+            <p>manage your document in one place </p>
           </div>
       
-
-          <div class="input-group mb-3 d-flex justify-content-center">
-               <a href="{% url 'stock' %}" >  
-            <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">invoice</button>
-            </a>
-          </div>
+  
+         <div class="input-group mb-3 d-flex justify-content-center">
+            <a href="{% url 'add_bonreception' %}" > 
+            <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">add receptions note</button>
+         </a>
+         </div>
 
          <div class="input-group mb-3 d-flex justify-content-center">
-            <a href="{% url 'doc' %}" >  
-               <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">documents</button>
-            </a>
-          </div>
-
+            <a href="{% url 'all_bonreception' %}" > 
+          <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">show all receptions</button>
+         </a>
+         </div>
          <div class="input-group mb-3 d-flex justify-content-center">
-          <a href="{% url 'partners' %}" >  
-          <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">partners</button>
-          </a>
+            <a href="{% url 'delete_bonreception' %}" > 
+            <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">delete all receptions</button>
+         </a>
          </div>
   </div>
   </div>

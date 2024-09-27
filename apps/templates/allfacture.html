@@ -13,6 +13,25 @@
     <title>COM ARKEYEZ | Orders</title>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+            <a class="navbar-brand" >ARKEYEZ</a>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+                </li> <span> </span >
+                <li class="nav-item text-dark font-weight-bold">
+                    <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+                </li>
+            </ul>
+                <div class="search-container">
+                   
+                </div>
+            </div>
+    </nav>
 
     <!----------------------- Main Container -------------------------->
 
@@ -40,20 +59,38 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer ID</th>
-                                    <th>Order Date</th>
-                                    <th>Total Amount</th>
+                                    <th>ID</th>
+                                    <th>date</th>
+                                    <th>address</th>
+                                    <th>tax</th>
+                                    <th>discount</th>
+                                    <th>payment_method</th>
+                                    <th>ttc</th>
+                                    <th>product</th>
+                                    <th>quantity</th>
+                                    <th>price</th>
+                                    <th>customer</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for salesorder in salesorders %}
+                                {% for facture in factures %}
                                 <tr>
-                                    <td>{{ salesorder.order }}</td>
-                                    <td>{{ salesorder.customer }}</td>
-                                    <td>{{ salesorder.order_date }}</td>
-                                    <td>{{ salesorder.total_amount }}</td>
-                                    <td><a href="{% url 'update_sales_order' order.order %}"> Update Order </a></td>
+                                    <td>{{ facture.ID }}</td>
+                                    <td>{{ facture.date }}</td>
+                                    <td>{{ facture.address }}</td>
+                                    <td>{{ facture.tax }}</td>
+                                    <td>{{ facture.discount }}</td>
+                                    <td>{{ facture.payment_method }}</td>
+                                    <td>{{ facture.ttc }}</td>
+                                    <td>{{ facture.product }}</td>
+                                    <td>{{ facture.quantity }}</td>
+                                    <td>{{ facture.price }}</td>
+                                    <td>{{ facture.customer }}</td>
+                                    <td><a href="{% url 'update_facture' facture.order %}"> Update Order </a></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="11">No facture available.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -61,8 +98,8 @@
                     </div>
                 </div>
                 <div class="input-group mb-3 d-flex justify-content-center">
-                    <a href="{% url 'deleteorder' %}">
-                    <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">delete order</button>
+                    <a href="{% url 'deletefacture' %}">
+                    <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">delete facture</button>
                     </a>
                 </div>
                 <div class="input-group mb-3 d-flex justify-content-center">

@@ -65,37 +65,23 @@ class customer(models.Model):
         return f"customer {self.customer_name} {self.contact_person} {self.email} {self.phone_number}"
     class Meta:
         db_table = 'apps_customer'
+        
 
-
-class salesorder(models.Model):
-    order_id = models.AutoField(primary_key=True)
-    customer = models.ForeignKey(customer, on_delete=models.CASCADE, blank=True, null=True)
-    order_date = models.DateField(blank=True, null=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-
-    def __str__(self):
-        return f"Order {self.order_date} - {self.total_amount} - {self.customer}"
-    class Meta:
-        db_table = 'apps_salesorder'
-
-class orderitem(models.Model):
-    #product
+class item(models.Model):
     item = models.AutoField(primary_key=True)
-    order_id = models.ForeignKey(salesorder, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=100, blank=True, null=True)
-    quantity = models.IntegerField(blank=True, null=True)
     unit_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    volume_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
-        return f"Item {self.order_id} {self.product_name} - {self.quantity} - {self.unit_price} - {self.total_price}"
+        return f"Item{self.product_name}  - {self.unit_price} - {self.volume_price}"
     class Meta:
-        db_table = 'apps_orderitem'
+        db_table = 'apps_item'
         
 
 class itemvariant(models.Model):
     variant_id = models.AutoField(primary_key=True)
-    item = models.ForeignKey(orderitem, on_delete=models.CASCADE)
+    item = models.ForeignKey(item, on_delete=models.CASCADE)
     variant_name = models.CharField(max_length=50, blank=True, null=True)
     variant_value = models.CharField(max_length=50, blank=True, null=True)
 
@@ -104,7 +90,7 @@ class itemvariant(models.Model):
     class Meta:
         db_table = 'apps_itemvariant'
     
-class centreddata(models.Model):
+class lead(models.Model):
     lead = models.AutoField(primary_key=True)
     company_name = models.CharField(max_length=55, blank=True, null=True)
     contact_person = models.CharField(max_length=55, blank=True, null=True)
@@ -112,15 +98,15 @@ class centreddata(models.Model):
     contact = models.CharField(max_length=55, blank=True, null=True)
     score = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-
     def __str__(self):
         return self.company_name
     class Meta:
-        db_table = 'apps_centreddata'
+        db_table = 'apps_lead'
         
 
-class adddata(models.Model):
-    lead = models.ForeignKey('centreddata', on_delete=models.CASCADE)
+class leaddata(models.Model):
+    id= models.AutoField(primary_key=True)
+    lead = models.ForeignKey('lead', on_delete=models.CASCADE)
     owner = models.CharField(max_length=55, blank=True, null=True)
     contract_file = models.FileField(upload_to='contracts/', blank=True, null=True)
     nextdate = models.DateField()
@@ -138,11 +124,10 @@ class adddata(models.Model):
         ('closed', 'Closed'),
     ] , blank=True, null=True)
     note = models.TextField(blank=True, null=True)
-    
     def __str__(self):
-        return self.lead
+     return f"leaddata {self.status or 'No Status'} - {self.score if self.score is not None else 0}" 
     class Meta:
-        db_table = 'apps_adddata'
+        db_table = 'apps_leaddata'
 
 
 class supplier(models.Model):
@@ -153,13 +138,13 @@ class supplier(models.Model):
     categories_supplied = models.CharField(max_length=45, blank=True, null=True)
     payment_terms = models.CharField(max_length=45, blank=True, null=True)
     product_quality = models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)
-    cost = models.DecimalField(blank=True, decimal_places=10, max_digits=10, null=True)
+    cost = models.FloatField(blank=True, null=True)
     interaction_quality = models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)
     feedback = models.TextField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return (f"supplier {self.supplier_name or 'Unknown'}: "
-                f"ID {self.supplier_id} - "
+                f"ID {self.supplier} - "
                 f"Contact: {self.contact_info }, "
                 f"Address: {self.address }, "
                 f"Categories: {self.categories_supplied }, "
@@ -172,56 +157,52 @@ class supplier(models.Model):
         db_table = 'apps_supplier'
 
 
-class deliverynote(models.Model):
+class bonreception(models.Model):
     delivery = models.AutoField(primary_key=True)
     delivery_date = models.DateField(blank=True, null=True)
-    customer_name = models.CharField(max_length=50, blank=True, null=True)
     delivery_address = models.CharField(max_length=100, blank=True, null=True)
-    order = models.ForeignKey(salesorder, on_delete=models.CASCADE)
-    item = models.ForeignKey(orderitem, on_delete=models.CASCADE)
+    supplier_id = models.ForeignKey(supplier, on_delete=models.CASCADE)
+    item = models.ForeignKey(item, on_delete=models.CASCADE)
     quantity_delivered = models.IntegerField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
     transportation_type = models.CharField(max_length=100, blank=True, null=True)
-    
-    def __str__(self):
-        return f"Delivery Note {self.delivery} for {self.customer_name}"
+    variant_id = models.ForeignKey('itemvariant', on_delete=models.CASCADE, null=True, blank=True)
+
     class Meta:
-        db_table = 'apps_deliverynote'    
+        db_table = 'apps_bonreception'
+    def __str__(self):
+        return f"bonreception {self.delivery} for {self.supplier}"
+    class Meta:
+        db_table = 'apps_bonreception'
 
 
-class invoicenote(models.Model):
-    invoice = models.AutoField(primary_key=True)
+class facture(models.Model):
+    facture = models.AutoField(primary_key=True)
     datef = models.DateField(blank=True, null=True)
-    customer_name = models.CharField(max_length=50, blank=True, null=True)
     addressf = models.CharField(max_length=100, blank=True, null=True)
-    item = models.ForeignKey(orderitem, on_delete=models.CASCADE)
-    order = models.ForeignKey(salesorder, on_delete=models.CASCADE)
     tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     payment_method = models.CharField(max_length=55, blank=True, null=True)
     qte_facture = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    qte_delivred = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    pc = models.CharField(max_length=55, blank=True, null=True)
     ttc = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    product = models.ForeignKey(item, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)                                                          
+    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE) 
+    customer = models.ForeignKey(customer, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Invoice Note for {self.invoice} on {self.datef}"
+        return f"facture {self.facture} on {self.datef}"
     class Meta:
-        db_table = 'apps_invoicenote'    
+        db_table = 'apps_facture'    
     
     
 class retour(models.Model):
-    RAISON_CHOICES = [
-        ('defaut', 'Défaut de fabrication'),
-        ('non_conforme', 'Produit non conforme'),
-        ('autre', 'Autre'),
-    ]
-
+    retour = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(supplier, on_delete=models.CASCADE)
     client = models.ForeignKey(customer, on_delete=models.CASCADE)
-    produit = models.ForeignKey(orderitem, on_delete=models.CASCADE)
+    produit = models.ForeignKey(item, on_delete=models.CASCADE)
     quantite_retournee = models.PositiveIntegerField()
-    raison_retour = models.CharField(max_length=50, choices=RAISON_CHOICES)
+    raison_retour = models.TextField(blank=True, null=True)
     date_retour = models.DateField(auto_now_add=True)
     livreur = models.CharField(max_length=55, blank=True, null=True)
     informations_supp = models.TextField(blank=True, null=True)
