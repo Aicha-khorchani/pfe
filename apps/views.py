@@ -5,14 +5,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from requests import request
 from rest_framework.decorators import api_view
 from  saleManagment.settings import MEDIA_ROOT
-from .models import  leaddata, lead, customer, itemvariant, item, supplier , retour ,bonreception
-from .forms import DeleteSupplierForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm
+from .models import  facture, leaddata, lead, customer, itemvariant, item, supplier , retour,bonreception
+from .forms import DeleteSupplierForm, FactureForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm
 from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from decimal import Decimal, InvalidOperation
-
 
 
 
@@ -140,7 +139,7 @@ def search_return(request):
     if request.method == 'GET':
         searched = request.GET.get('searched','')
         if searched:
-            retours = retour.objects.filter(retour_icontains=searched)
+            retours = retour.objects.filter(retour__icontains=searched)
         else:
             retours= retour.objects.all()
         return render(request, 'search_return.html', {'retours': retours, 'searched': searched})
@@ -219,11 +218,94 @@ def search_customers(request):
 def search_lead(request):
      if request.method == 'GET':
         search = request.GET.get('search', '')
-        leads = lead.objects.filter(id__icontains=search)
+        leads = lead.objects.filter(lead__icontains=search)
         return render(request, 'searchlead.html', {'leads': leads})
      else:
         return render(request, 'searchlead.html')
     
+def delete_facture(request, id):
+    fact = get_object_or_404(facture, facture=id)
+    if request.method == 'POST':
+        fact.delete()
+        return redirect('get_all_factures')  # Redirect after deletion
+    return render(request, 'deletefacture.html', {'facture': fact})
+   
+def update_facture(request, id):
+    fact = get_object_or_404(facture, facture=id)
+    
+    if request.method == 'POST':
+        form = FactureForm(request.POST, instance=fact)
+        if form.is_valid():
+            form.save()
+            return redirect('get_all_factures')  # Redirect after update
+    else:
+        form = FactureForm(instance=fact)
+    
+    return render(request, 'updatefacture.html', {'form': form})
+
+
+def get_all_factures(request):
+    factures = facture.objects.all()
+    return render(request, 'all_factures.html', {'factures': factures})
+
+
+def search_facture(request):
+    if request.method == 'GET':
+        searched_id = request.GET.get('searched', '')
+        if searched_id:
+            factures = facture.objects.filter(facture=searched_id)
+        else:
+            factures = facture.objects.all()
+        
+        return render(request, 'search_facture.html', {'factures': factures, 'searched': searched_id})
+    
+    
+def add_facture(request):
+    if request.method == 'POST':
+        # Collect data from the form
+        datef = request.POST.get('datef')
+        customer_id = request.POST.get('customer_id')
+        addressf = request.POST.get('addressf')
+        product_id = request.POST.get('product')
+        tax = request.POST.get('tax')
+        discount = request.POST.get('discount')
+        payment_method = request.POST.get('Payment_Method')
+        variant_id = request.POST.get('variant')
+        qte_facture = request.POST.get('qte_facture')
+        ttc = request.POST.get('TTC')
+        price = request.POST.get('price')
+
+        # Get related ForeignKey objects
+        try:
+            customer_obj = customer.objects.get(pk=customer_id)
+            product_obj = item.objects.get(pk=product_id)
+            variant_obj = itemvariant.objects.get(pk=variant_id)
+        except (customer.DoesNotExist, item.DoesNotExist, itemvariant.DoesNotExist):
+            # Handle case when any ForeignKey object is not found
+            return render(request, 'add_facture.html', {
+                'error': 'Invalid customer, product, or variant provided.'
+            })
+
+        # Create and save a new facture instance
+        facture_obj = facture(
+            datef=datef,
+            addressf=addressf,
+            tax=tax,
+            discount=discount,
+            payment_method=payment_method,
+            qte_facture=qte_facture,
+            ttc=ttc,
+            price=price,
+            product=product_obj,
+            variant=variant_obj,
+            customer=customer_obj,
+        )
+        facture_obj.save()
+
+        return redirect('get_all_factures')  
+    else:
+        return render(request, 'addfacture.html')
+
 
 def updatelead(request, id):
     lead_instance = lead.objects.get(pk=id)
@@ -485,8 +567,6 @@ def stock(request):
 def partners(request):
     return render(request,"partners.html")
 
-def addfacture(request):
-    return render(request,"addfacture.html")
 
 def leads(request):
     return render(request,"leads.html")

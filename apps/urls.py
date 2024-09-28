@@ -6,7 +6,7 @@ from .views import update_customer, update_item, variant_delete, update_item_var
 from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners
 from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list
 from .views import delete_retour,update_retour,add_retour,all_retour, doc, search_return ,add_bonreception,update_bonreception,all_bonreception,delete_bonreception,search_bonreception
-from .views import invoice,returne,reception
+from .views import invoice,returne,reception,update_facture ,delete_facture,get_all_factures,search_facture,add_facture
 
 
 urlpatterns = [
@@ -14,7 +14,11 @@ urlpatterns = [
     path('home', home, name='home'),
     path('stock', stock, name='stock'),
     path('partners', partners, name='partners'),
-    path('addfacture.html', addfacture, name='addfacture'),    
+    path('add_facture.html', add_facture, name='add_facture'),    
+    path('update_facture', update_facture, name='update_facture'),    
+    path('delete_facture', delete_facture, name='delete_facture'),    
+    path('get_all_factures', get_all_factures, name='get_all_factures'),    
+    path('search_facture', search_facture, name='search_facture'),    
     path('doc', doc, name='doc'),    
     path('invoice', invoice, name='invoice'),    
     path('returne', returne, name='returne'),    

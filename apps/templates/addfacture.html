@@ -20,15 +20,26 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
             <a class="navbar-brand" >ARKEYEZ</a>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                    <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-                </li> <span> </span >
                 <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-                </li>
-            </ul>
+                <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+            </li> <span> </span >
+            <li class="nav-item text-dark font-weight-bold">
+                <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+            </li>
+            <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
+         </li> <span> </span >
+         <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
+         </li>
+         <li class="nav-item text-dark font-weight-bold">
+          <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
+      </li>
+
+
+        </ul>
                 <div class="search-container">
-                    <form class="d-flex" method="GET" action="{% url 'searchcustomers' %}">
+                    <form class="d-flex" method="GET" action="{% url 'search_facture' %}">
                         {% csrf_token %}
                         <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
                         <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
@@ -40,7 +51,7 @@
     <!----------------------- Main Container -------------------------->
 
     <div class="container  min-vh-100">
-        <form method="post">
+        <form method="POST">
             {% csrf_token %}
         <div class="row border rounded-5 p-3 bg-white shadow box-area">
             <div class="col-md-6 rounded-4 d-flex  flex-column left-box" style="background: #103cbe;">
@@ -93,8 +104,14 @@
                     <div class="input-group mb-3">
                         <input type="text" id="price" name="price" class="form-control form-control-lg bg-light fs-6" placeholder="price" required>
                     </div>
-               
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                {% endif %}
+                
                     <div class="input-group mb-3 d-flex justify-content-center">
+                        <a href="{% url 'add_facture' %}">
                         <button class="btn btn-lg btn-primary w-100 fs-6" style="min-width: 200px;" type="submit">Add invoice note</button>
                 </div>
             </form>
@@ -102,7 +119,7 @@
                 <button class="btn btn-lg btn-primary w-100 fs-6" style="min-width: 200px;" type="submit">print invoice note</button>
         </div>
             <div class="input-group mb-3 d-flex justify-content-center">
-                <a href="{% url 'supplier_list' %}">
+                <a href="{% url 'get_all_factures' %}">
                     <button class="btn btn-lg btn-primary w-100 fs-6" style="min-width: 200px;">show invoice notes</button>
                     </a>
                 </div>

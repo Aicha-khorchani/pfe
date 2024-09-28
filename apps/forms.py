@@ -1,5 +1,5 @@
 from django import forms
-from .models import   retour, customer, item, itemvariant,lead, supplier ,bonreception
+from .models import   facture, retour, customer, item, itemvariant,lead, supplier ,bonreception
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -34,6 +34,13 @@ class BonReceptionForm(forms.ModelForm):
             'variant_id'
         ]
         
+        
+
+      
+class FactureForm(forms.ModelForm):
+    class Meta:
+        model = facture
+        fields = '__all__'
 
 
 

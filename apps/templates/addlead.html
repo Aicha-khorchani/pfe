@@ -17,13 +17,24 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
             <a class="navbar-brand" >ARKEYEZ</a>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                    <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-                </li> <span> </span >
                 <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-                </li>
-            </ul>
+                <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+            </li> <span> </span >
+            <li class="nav-item text-dark font-weight-bold">
+                <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+            </li>
+            <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
+         </li> <span> </span >
+         <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
+         </li>
+         <li class="nav-item text-dark font-weight-bold">
+          <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
+      </li>
+
+
+        </ul>
                 <div class="search-container">
                     <form class="d-flex" method="GET" action="{% url 'searchcustomers' %}">
                         {% csrf_token %}
