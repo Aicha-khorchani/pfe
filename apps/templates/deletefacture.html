@@ -65,12 +65,15 @@
                 <form method="POST">
                     {% csrf_token %}
                 <div class="input-group mb-3">
-                    <input type="text" id="facture" name="facture" class="form-control form-control-lg bg-light fs-6" placeholder="invoice id">
+                    <input type="text" id="facture_id" name="facture_id" class="form-control form-control-lg bg-light fs-6" placeholder="invoice id">
                 </div>
                 <div class="input-group mb-3 d-flex justify-content-center">
                     <button type="submit" class="btn btn-lg btn-primary w-100 fs-6 btn-custom"  onclick="return confirm('Are you sure you want to delete this invoice?')" style="min-width: 200px;">delete</button>
                 </div>
             </form>
+            {% if error %}
+            <p style="color:red;">{{ error }}</p>
+        {% endif %}
             <div class="input-group mb-3 d-flex justify-content-center">
                 <a href="{% url 'allfacture' %}">
                     <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">show all invoices</button>

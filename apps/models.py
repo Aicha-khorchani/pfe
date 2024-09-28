@@ -177,7 +177,7 @@ class bonreception(models.Model):
 
 
 class facture(models.Model):
-    facture = models.AutoField(primary_key=True)
+    facture_id = models.AutoField(primary_key=True)
     datef = models.DateField(blank=True, null=True)
     addressf = models.CharField(max_length=100, blank=True, null=True)
     tax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

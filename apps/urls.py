@@ -2,7 +2,7 @@ from django.conf import settings
 from django.urls import path
 from django.conf.urls.static import static
 from .views import  add_itemvariant, add_item, allcustomers, customer_delete, home, add_customer, search_customers, update_password
-from .views import update_customer, update_item, variant_delete, update_item_variant,updatesupplier,delete_supplier,addfacture
+from .views import update_customer, update_item, variant_delete, update_item_variant,updatesupplier,delete_supplier
 from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners
 from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list
 from .views import delete_retour,update_retour,add_retour,all_retour, doc, search_return ,add_bonreception,update_bonreception,all_bonreception,delete_bonreception,search_bonreception
@@ -15,8 +15,8 @@ urlpatterns = [
     path('stock', stock, name='stock'),
     path('partners', partners, name='partners'),
     path('add_facture.html', add_facture, name='add_facture'),    
-    path('update_facture', update_facture, name='update_facture'),    
-    path('delete_facture', delete_facture, name='delete_facture'),    
+    path('update_facture/<int:id>/', update_facture, name='update_facture'),
+    path('delete_facture', delete_facture, name='delete_facture'),
     path('get_all_factures', get_all_factures, name='get_all_factures'),    
     path('search_facture', search_facture, name='search_facture'),    
     path('doc', doc, name='doc'),    

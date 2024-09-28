@@ -107,19 +107,11 @@ def update_retour(request, retour_id):
 
 def delete_bonreception(request):
     if request.method == 'POST':
-        # Get the delivery_id from the form submission
         delivery_id = request.POST.get('delivery_id')
-        
-        # Get the bonreception instance or return a 404 error if not found
         bonreception_instance = get_object_or_404(bonreception, delivery=delivery_id)
-        
-        # Delete the instance
         bonreception_instance.delete()
-        
-        # Redirect to the view showing all reception notes after deletion
         return redirect('all_bonreception')
 
-    # If GET request, simply render the delete confirmation template
     return render(request, 'delete_bonreception.html')
 
 
@@ -224,11 +216,16 @@ def search_lead(request):
         return render(request, 'searchlead.html')
     
 def delete_facture(request, id):
-    fact = get_object_or_404(facture, facture=id)
     if request.method == 'POST':
-        fact.delete()
-        return redirect('get_all_factures')  # Redirect after deletion
-    return render(request, 'deletefacture.html', {'facture': fact})
+        facture_id = request.POST.get('facture_id')
+        try:
+            fact = get_object_or_404(facture, pk=facture_id)
+            fact.delete()
+            return redirect('get_all_factures')  # Redirect after successful deletion
+        except facture.DoesNotExist:
+            return render(request, 'deletefacture.html', {'error': 'Facture ID does not exist'})
+    return render(request, 'deletefacture.html')
+   
    
 def update_facture(request, id):
     fact = get_object_or_404(facture, facture=id)
@@ -246,14 +243,14 @@ def update_facture(request, id):
 
 def get_all_factures(request):
     factures = facture.objects.all()
-    return render(request, 'all_factures.html', {'factures': factures})
+    return render(request, 'allfacture.html', {'factures': factures})
 
 
 def search_facture(request):
     if request.method == 'GET':
         searched_id = request.GET.get('searched', '')
         if searched_id:
-            factures = facture.objects.filter(facture=searched_id)
+            factures = facture.objects.filter(facture_id=searched_id)
         else:
             factures = facture.objects.all()
         
@@ -566,6 +563,8 @@ def stock(request):
 
 def partners(request):
     return render(request,"partners.html")
+
+
 
 
 def leads(request):
