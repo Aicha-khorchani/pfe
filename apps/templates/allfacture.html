@@ -34,10 +34,7 @@
          </li>
          <li class="nav-item text-dark font-weight-bold">
           <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-      </li>
-
-
-        </ul>
+      </li></ul>
                 <div class="search-container">
                     <form class="d-flex" method="GET" action="{% url 'search_facture' %}">
                         {% csrf_token %}
@@ -93,8 +90,8 @@
                                 {% for facture in factures %}
                                 <tr>
                                     <td>{{ facture.facture_id }}</td>
-                                    <td>{{ facture.date }}</td>
-                                    <td>{{ facture.address }}</td>
+                                    <td>{{ facture.datef }}</td>
+                                    <td>{{ facture.addressf }}</td>
                                     <td>{{ facture.tax }}</td>
                                     <td>{{ facture.discount }}</td>
                                     <td>{{ facture.payment_method }}</td>

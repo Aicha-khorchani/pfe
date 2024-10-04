@@ -34,7 +34,13 @@
           <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
       </li>
         </ul>
-              
+                <div class="search-container">
+                    <form class="d-flex" method="GET" action="{% url 'search_lead' %}">
+                        {% csrf_token %}
+                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
+                        <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
+                    </form>
+                </div>
             </div>
     </nav>
     <!----------------------- Main Container -------------------------->
@@ -52,12 +58,11 @@
        <div class="col-md-6 right-box">
           <div class="row align-items-center">
                 <div class="header-text mb-4">
-                     <h2>delete or archive a lead</h2>
+                     <h2>delete a lead</h2>
                      <h3>warning :once a lead gets deleted you can't restore it!</h3></br>
-                     <h3>warning :archived lead are leads that can be restored in the future...</h3>
 
                 </div>
-                <form method="post">
+                <form method="POST">
                     {% csrf_token %}
                     <div class="input-group mb-3">
                         <input type="text" id="lead" value="{{lead}}" name="lead" class="form-control form-control-lg bg-light fs-6" placeholder="lead id">

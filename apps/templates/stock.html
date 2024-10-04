@@ -13,40 +13,33 @@
 </head>
 
 <body>  
-    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <a class="navbar-brand" >ARKEYEZ</a>
-            <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-                   <span class="navbar-toggler-icon"></span>
-               </button>
-               <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-                   <a class="navbar-brand" >ARKEYEZ</a>
-                   <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                       <li class="nav-item text-dark font-weight-bold">
-                       <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-                   </li> <span> </span >
-                   <li class="nav-item text-dark font-weight-bold">
-                       <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-                   </li>
-                   <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
-                </li> <span> </span >
+  <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+        <a class="navbar-brand" >ARKEYEZ</a>
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
                 <li class="nav-item text-dark font-weight-bold">
-                    <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
-                </li>
-                <li class="nav-item text-dark font-weight-bold">
-                 <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-             </li>
-               </ul>
-                <div class="search-container">
-                   
-                </div>
+                <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+            </li> <span> </span >
+            <li class="nav-item text-dark font-weight-bold">
+                <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+            </li>
+            <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
+         </li> <span> </span >
+         <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
+         </li>
+         <li class="nav-item text-dark font-weight-bold">
+          <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
+      </li>
+        </ul>
+            <div class="search-container">  
             </div>
-    </nav>
+        </div>
+</nav>
 
  <!----------------------- Main Container -------------------------->
 
@@ -73,7 +66,8 @@
       
        
           <div class="input-group mb-3 d-flex justify-content-center">
-            <a href="addproduct.html">
+            <a href="{% url 'addproduct' %}">
+              
             <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;"> add Product</button>
             </a>
           </div>
@@ -100,8 +94,8 @@
                 </a>
             </div>
          <div class="input-group mb-3 d-flex justify-content-center">
-          <a href="{% url 'all_items' %}">
-            <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">show stock</button>
+          <a href="{% url 'get_stock_levels' %}">
+          <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">show stock</button>
          </a>
          </div>
 

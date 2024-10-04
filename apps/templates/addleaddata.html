@@ -35,11 +35,9 @@
          <li class="nav-item text-dark font-weight-bold">
           <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
       </li>
-
-
         </ul>
                 <div class="search-container">
-                    <form class="d-flex" method="GET" action="{% url 'searchcustomers' %}">
+                    <form class="d-flex" method="GET" action="{% url 'search_lead' %}">
                         {% csrf_token %}
                         <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
                         <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
@@ -59,7 +57,7 @@
                     <h3>Add more details</h3>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" id="lead_id" name="lead_id" class="form-control form-control-lg bg-light fs-6" placeholder="lead id">
+                    <input type="text" id="lead_id" name="lead_id" value ="{{ lead }}" class="form-control form-control-lg bg-light fs-6" placeholder="lead id">
                 </div> 
                 <div class="input-group mb-3">
                     <input type="text" id="owner" name="owner" class="form-control form-control-lg bg-light fs-6" placeholder="lead's owner">

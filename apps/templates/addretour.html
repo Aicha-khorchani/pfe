@@ -39,7 +39,7 @@
 
         </ul>
                 <div class="search-container">
-                    <form class="d-flex" method="GET" action="{% url 'searchcustomers' %}">
+                    <form class="d-flex" method="GET" action="{% url 'search_customers' %}">
                         {% csrf_token %}
                         <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
                         <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
@@ -67,6 +67,9 @@
                 </div>
                 <div class="input-group mb-3">
                     <input type="text" id="produit" name="produit" class="form-control form-control-lg bg-light fs-6" placeholder="Produit " required>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" id="variant" name="variant" class="form-control form-control-lg bg-light fs-6" placeholder="variant " required>
                 </div>
                 <div class="input-group mb-3">
                     <input type="text" id="quantite_retournee" name="quantite_retournee" class="form-control form-control-lg bg-light fs-6" placeholder="Quantité retournée" required>

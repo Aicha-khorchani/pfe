@@ -1,17 +1,23 @@
 from datetime import datetime
+import decimal
+import logging
 import os
-from django.http import Http404
+from venv import create
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from requests import request
 from rest_framework.decorators import api_view
 from  saleManagment.settings import MEDIA_ROOT
-from .models import  facture, leaddata, lead, customer, itemvariant, item, supplier , retour,bonreception
-from .forms import DeleteSupplierForm, FactureForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm
-from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm
+from .models import  Stock, customuser, facture, leaddata, lead, customer, itemvariant, item, supplier , retour,bonreception ,AdminUser
+from .forms import CustomUserChangeForm, DeleteSupplierForm, FactureForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm, itemForm
+from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm,AdminUserCreationForm  
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from decimal import Decimal, InvalidOperation
+from django.db.models import F,Count
+from django.contrib.auth.decorators import user_passes_test
+
 
 
 
@@ -35,11 +41,18 @@ def add_bonreception(request):
     if request.method == 'POST':
         form = BonReceptionForm(request.POST)
         if form.is_valid():
-            form.save()
+            bonreception = form.save()
+    #zdt partie hethy bch tautomatizi l stock
+            stock, created = Stock.objects.get_or_create(item=bonreception.item, item_variant=bonreception.variant)
+            if created :
+                  stock.quantity_available = bonreception.quantity_delivered
+            else:
+                  stock.quantity_available += bonreception.quantity_delivered
+            stock.save()
+     #zdt partie hethy bch tautomatizi l stock
             return redirect('all_bonreception')
         else:
-            # Print form errors for debugging
-            print(form.errors)  # Log the errors to the console
+            print(form.errors)  
     else:
         form = BonReceptionForm()
     return render(request, 'addreception.html', {'form': form})
@@ -47,14 +60,20 @@ def add_bonreception(request):
 
 def update_bonreception(request, delivery):
     bonreception_instance = get_object_or_404(bonreception, pk=delivery)
+    
     if request.method == 'POST':
-        print(request.POST) 
-        form = BonReceptionForm(request.POST, instance=bonreception_instance)
+        print(request.POST)  
+        form = BonReceptionForm(request.POST, instance=bonreception_instance)  
+        
         if form.is_valid():
-            form.save()
-            return redirect('all_bonreception')  # Redirect to the list view
+            form.save() 
+            return redirect('all_bonreception') 
+        else:
+            print(form.errors)  
+
     else:
-        form = BonReceptionForm(instance=bonreception_instance)
+        form = BonReceptionForm(instance=bonreception_instance) 
+
     return render(request, 'updatereception.html', {'form': form})
 
 
@@ -63,7 +82,6 @@ def all_bonreception(request):
     return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
 
 
-# Search for bonreception by delivery ID
 def search_bonreception(request):
     searched = request.GET.get('searched', '')
     if searched:
@@ -88,7 +106,15 @@ def add_retour(request):
     if request.method == 'POST':
         form = RetourForm(request.POST)
         if form.is_valid():
-            form.save()
+            retour = form.save()
+            #zdt partie hethy 3 ligne bch notomatizi stock ba9i ken i5dm cv 
+            stock, created = Stock.objects.get_or_create(item=retour.produit, item_variant=retour.variant)
+            if created :
+                stock.quantity_available = retour.quantite_retournee
+            else :
+                stock.quantity_available = stock.quantity_available + retour.quantite_retournee
+            stock.save()
+            #zdt partie hethy 3 ligne bch notomatizi stock ba9i ken i5dm cv 
             return redirect('all_retour')
     else:
         form = RetourForm()
@@ -100,10 +126,11 @@ def update_retour(request, retour_id):
         form = RetourForm(request.POST, instance=retour_instance)
         if form.is_valid():
             form.save()
-            return redirect('all_retour')  # Redirect to the list view
+            return redirect('all_retour') 
     else:
         form = RetourForm(instance=retour_instance)
     return render(request, 'updateretour.html', {'form': form})
+
 
 def delete_bonreception(request):
     if request.method == 'POST':
@@ -120,9 +147,9 @@ def delete_retour(request):
     form = RetourDeleteForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         retour_id = form.cleaned_data['retour_id']
-        retour_obj = get_object_or_404(retour, pk=retour_id)  # Renamed local variable
+        retour_obj = get_object_or_404(retour, pk=retour_id)  
         retour_obj.delete()
-        return redirect('all_retour')  # Redirect to the list view
+        return redirect('all_retour') 
     return render(request, 'delete_retour.html', {'form': form})
 
 
@@ -152,8 +179,8 @@ def customer_delete(request):
 
 
 def all_Details(request):
-    lead = lead.objects.all()
-    return render(request, 'all_leads.html', {'lead': lead})
+    leaddatas = leaddata.objects.all()
+    return render(request, 'allleaddata.html', {'leaddatas': leaddatas})
 
 def all_items(request):
     items = item.objects.all()
@@ -163,6 +190,39 @@ def all_items(request):
 def supplier_list(request):
     suppliers = supplier.objects.all()
     return render(request, 'allsupplier.html', {'suppliers': suppliers})
+
+
+def search_supplier(request):
+    if request.method == 'GET':
+        search = request.GET.get('search', '')
+        if search:
+            query = Q(product_quality__icontains=search) | \
+                    Q(supplier_name__icontains=search) | \
+                    Q(contact_info__icontains=search) | \
+                    Q(address__icontains=search) | \
+                    Q(categories_supplied__icontains=search) | \
+                    Q(payment_terms__icontains=search)| \
+                    Q(feedback__icontains=search)
+            suppliers = supplier.objects.filter(query)
+        else:
+            suppliers = supplier.objects.all()
+        return render(request, 'searchsupplier.html', {'search': search,'suppliers': suppliers})
+    else:
+        return render(request, 'searchsupplier.html')
+
+
+
+def search_customers(request):
+    if request.method == "GET":
+        searched = request.GET.get('searched', '')
+        query = Q(customer_name__icontains=searched) | \
+                Q(contact_person__icontains=searched) | \
+                Q(email__icontains=searched) | \
+                Q(phone_number__icontains=searched)
+        customers = customer.objects.filter(query)
+        return render(request, 'search_results.html', {'searched': searched, 'customers': customers})
+    else:
+        return render(request, 'search_results.html', {})
 
 
 def add_customer(request):
@@ -181,50 +241,62 @@ def add_customer(request):
     return render(request, 'addcustomer.html')
 
 
-    
-    
-  
+
+logger = logging.getLogger(__name__)
+
+
+def get_stock_levels(request):
+    stocks = Stock.objects.all()
+    return render(request, 'allstock.html', {'stocks': stocks})
+
+
+
+
+
 def search_product(request):
     if request.method == "GET":
         searched = request.GET.get('searched', '')
         if searched:
-            items = item.objects.filter(product_name__icontains=searched)
+            query = Q(product_name__icontains=searched) | \
+                    Q(unit_price__icontains=searched) | \
+                    Q(volume_price__icontains=searched) 
+            items = item.objects.filter(query)
         else:
-           items = item.objects.all()
+            items = item.objects.all()
         return render(request, 'search_product.html', {'items': items, 'searched': searched})
     else:
         return render(request, 'search_product.html', {})
 
 
 
-def search_customers(request):
-    if request.method == "GET":
-        searched = request.GET.get('searched', '')
-        customers = customer.objects.filter(customer_name__icontains=searched)
-        return render(request, 'search_results.html', {'searched': searched, 'customers': customers})
-    else:
-        return render(request, 'search_results.html', {})
-    
-
-
 def search_lead(request):
-     if request.method == 'GET':
+    if request.method == 'GET':
         search = request.GET.get('search', '')
-        leads = lead.objects.filter(lead__icontains=search)
+        if search:
+            query = Q(company_name__icontains=search) | \
+                    Q(contact_person__icontains=search) | \
+                    Q(position__icontains=search) | \
+                    Q(contact__icontains=search) | \
+                    Q(description__icontains=search)
+            leads = lead.objects.filter(query)
+        else:
+            leads = lead.objects.all()
         return render(request, 'searchlead.html', {'leads': leads})
-     else:
+    else:
         return render(request, 'searchlead.html')
+
     
-def delete_facture(request, id):
+    
+def delete_facture(request):
     if request.method == 'POST':
-        facture_id = request.POST.get('facture_id')
+        facture_id = request.POST.get('facture_id')  # Get the entered facture ID from the form
         try:
-            fact = get_object_or_404(facture, pk=facture_id)
-            fact.delete()
-            return redirect('get_all_factures')  # Redirect after successful deletion
+            fact = get_object_or_404(facture, pk=facture_id)  # Fetch the Facture using the entered ID
+            fact.delete()  # Delete the facture
+            return redirect('get_all_factures')  # Redirect after deletion
         except facture.DoesNotExist:
-            return render(request, 'deletefacture.html', {'error': 'Facture ID does not exist'})
-    return render(request, 'deletefacture.html')
+            return render(request, 'deletefacture.html', {'error': 'Facture ID does not exist'})  # Error if not found
+    return render(request, 'deletefacture.html')  
    
    
 def update_facture(request, id):
@@ -259,7 +331,6 @@ def search_facture(request):
     
 def add_facture(request):
     if request.method == 'POST':
-        # Collect data from the form
         datef = request.POST.get('datef')
         customer_id = request.POST.get('customer_id')
         addressf = request.POST.get('addressf')
@@ -271,19 +342,15 @@ def add_facture(request):
         qte_facture = request.POST.get('qte_facture')
         ttc = request.POST.get('TTC')
         price = request.POST.get('price')
-
-        # Get related ForeignKey objects
         try:
             customer_obj = customer.objects.get(pk=customer_id)
             product_obj = item.objects.get(pk=product_id)
             variant_obj = itemvariant.objects.get(pk=variant_id)
         except (customer.DoesNotExist, item.DoesNotExist, itemvariant.DoesNotExist):
-            # Handle case when any ForeignKey object is not found
-            return render(request, 'add_facture.html', {
+            return render(request, 'addfacture.html', {
                 'error': 'Invalid customer, product, or variant provided.'
             })
 
-        # Create and save a new facture instance
         facture_obj = facture(
             datef=datef,
             addressf=addressf,
@@ -298,6 +365,17 @@ def add_facture(request):
             customer=customer_obj,
         )
         facture_obj.save()
+            #zdt partie hethy bch tautomatizi l stock lba9i ken i5dem cv
+        stock, created = Stock.objects.get_or_create(item=product_obj, item_variant=variant_obj)
+        if created:
+            stock.quantity_available = 0
+        if stock.quantity_available < decimal.Decimal(facture_obj.qte_facture):
+            return render(request, 'addfacture.html', {
+                'error': 'Vous n\'avez pas assez de stock pour cette quantité.'
+            })
+        else:
+            stock.quantity_available -= decimal.Decimal(facture_obj.qte_facture)
+            stock.save()
 
         return redirect('get_all_factures')  
     else:
@@ -364,8 +442,8 @@ def update_item_variant(request, variant_id):
 def delete_lead(request):
     form = DeleteLeadForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        lead_id = form.cleaned_data['lead']  # This should hold the lead ID
-        lead_obj = get_object_or_404(lead, pk=lead_id)  # Correct usage here
+        lead_id = form.cleaned_data['lead']  
+        lead_obj = get_object_or_404(lead, pk=lead_id)  
         lead_obj.delete()
         return redirect('all_leads')
     return render(request, 'deletelead.html', {'form': form})
@@ -389,12 +467,12 @@ def delete_supplier(request):
        print("POST method detected")
     if form.is_valid():
         print("Form is valid")
-        supplier_id = form.cleaned_data['supplier_id']  # This should hold the lead ID
-        supplier_obj = get_object_or_404(supplier, pk=supplier_id)  # Correct usage here
+        supplier_id = form.cleaned_data['supplier_id']  
+        supplier_obj = get_object_or_404(supplier, pk=supplier_id)  
         supplier_obj.delete()
         return redirect('supplier_list')
     else:
-        print("Form is invalid")  # Debugging
+        print("Form is invalid")  
         print(form.errors) 
         
     print("Template is being rendered")
@@ -412,16 +490,13 @@ def variant_delete(request):
 
 def add_item(request):
     if request.method == 'POST':
-        product_name = request.POST.get('product_name')
-        unit_price = request.POST.get('unit_price')
-        volume_price = request.POST.get('volume_price')
-        item.objects.create(
-            product_name=product_name,
-            unit_price=unit_price,
-            volume_price=volume_price
-        )
-        return redirect('all_items')
-    return render(request, 'addproduct.html')
+        form = itemForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('all_items')
+    else:
+        form = itemForm()
+    return render(request, 'addproduct.html', {'form': form})
 
 
 def add_lead(request):
@@ -467,7 +542,6 @@ def add_data(request):
             print("Missing required fields")
             return render(request, 'addleaddata.html', {'error': 'Lead ID, Score, and Status are required'})
         try:
-            # Fetch the lead object
             lead_instance = lead.objects.get(pk=lead_id)
             print("Lead found:", lead_instance)
         except lead.DoesNotExist:
@@ -498,7 +572,7 @@ def add_data(request):
             print("Error saving data:", e)
             return render(request, 'addleaddata.html', {'error': 'An error occurred while saving data'})
         print("Redirecting to success page or lead list")
-        return redirect('lead_list')  # Replace with your actual success URL
+        return redirect('all_leads')  # Replace with your actual success URL
     # For GET requests, render the empty form
     print("Rendering form for GET request")
     return render(request, 'addleaddata.html')
@@ -520,28 +594,7 @@ def add_itemvariant(request):
 
 
 
-def  login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')  # Redirect to a success page
-            else:
-                # Invalid login
-                return render(request, 'login.html', {'form': form, 'error_message': 'Invalid username or password'})
-    else:
-        form = LoginForm()
-    return render(request, 'login.html', {'form': form})
 
-
-def  logout_view(request):
-    logout(request)
-    messages.success(request, ("you are  logged out !"))
-    return redirect('login')
 
 def doc(request):
     return render(request,"doc.html")
@@ -564,7 +617,8 @@ def stock(request):
 def partners(request):
     return render(request,"partners.html")
 
-
+def admin(request):
+    return render(request,"admin.html")
 
 
 def leads(request):
@@ -648,3 +702,121 @@ def add_supplier(request):
     return render(request, 'addsupplier.html')
 
 
+
+def  login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('home')  # Redirect to a success page
+            else:
+                # Invalid login
+                return render(request, 'login.html', {'form': form, 'error_message': 'Invalid username or password'})
+    else:
+        form = LoginForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def  logout_view(request):
+    logout(request)
+    messages.success(request, ("you are  logged out !"))
+    return redirect('login')
+
+
+def is_admin(user):
+    return user.is_superuser
+
+@user_passes_test(is_admin)
+def user_list(request):
+    print(f"User: {request.user}, Is Admin: {is_admin(request.user)}")  # Debug line
+    if not is_admin(request.user):
+        messages.error(request, "You do not have permission to view this page.")
+        return redirect('home') 
+    users = customuser.objects.all()
+    return render(request, 'user_list.html', {'users': users})
+
+
+@user_passes_test(is_admin)
+def user_create(request):
+    if request.method == 'POST':
+        form = customuserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)  
+            user.set_password(form.cleaned_data['password1'])  
+            user.save() 
+            messages.success(request, "User  created successfully!")
+            return redirect('user_list')  
+    else:
+        form = customuserCreationForm()
+
+    return render(request, 'user_form.html', {'form': form})
+
+
+
+@user_passes_test(is_admin)
+def user_update(request, user_id):
+    user = get_object_or_404(customuser, id=user_id)
+    if request.method == 'POST':
+        form = CustomUserChangeForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user_list')
+    else:
+        form = CustomUserChangeForm(instance=user)
+    return render(request, 'user_form.html', {'form': form})
+
+
+@user_passes_test(is_admin)
+def user_delete(request, user_id):
+    user = get_object_or_404(customuser, id=user_id)
+    if request.method == 'POST':
+        user.delete()
+        return redirect('user_list')
+    return render(request, 'deleteuser.html', {'user': user})
+
+@user_passes_test(is_admin)
+def admin_user_create(request):
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Admin user created successfully.")
+            return redirect('admin_user_list') 
+    else:
+        form = AdminUserCreationForm()
+    return render(request, 'createadmin.html', {'form': form})
+
+
+@user_passes_test(is_admin)
+def admin_user_update(request, user_id):
+    admin_user = get_object_or_404(AdminUser, id=user_id)
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST, instance=admin_user)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_user_list')
+    else:
+        form = AdminUserCreationForm(instance=admin_user)
+    return render(request, 'updateadmin.html', {'form': form})
+
+
+@user_passes_test(is_admin)
+def admin_user_delete(request, user_id):
+    admin_user = get_object_or_404(AdminUser, id=user_id)
+    if request.method == 'POST':
+        admin_user.delete()
+        return redirect('admin_user_list')
+    return render(request, 'adminconfirm_delete.html', {'admin_user': admin_user})
+
+
+@user_passes_test(is_admin)
+def admin_user_list(request):
+    if not is_admin(request.user): 
+        messages.error(request, "You do not have permission to view this page.")
+        return redirect('home') 
+    admin_users = AdminUser.objects.all()
+    return render(request, 'admin_user_list.html', {'admin_users': admin_users}) 

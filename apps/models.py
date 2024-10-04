@@ -1,10 +1,13 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager , PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager , PermissionsMixin ,Group, Permission
 from django.db import models
 
-class customuserManager(BaseUserManager):
+
+class CustomUserManager(BaseUserManager):
     def create_user(self, username, email, full_name, password=None):
         if not email:
             raise ValueError('Users must have an email address')
+        if not username:
+            raise ValueError('Users must have a username')
         user = self.model(
             username=username,
             email=self.normalize_email(email),
@@ -34,19 +37,30 @@ class customuser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    objects = customuserManager()
+    objects = CustomUserManager()
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'full_name']
-    
-    def get_user_permissions(self, obj=None):
-        """
-        Return a list of permission strings that this user has i need to add the list to access my database dont forget this aicha !!!.
-        """
-        return ['%s.%s' % (app_label, codename) for app_label, codename in self.get_all_permissions(obj)]
-    
+
     def __str__(self):
         return self.username
+
+class UserPermission(models.Model):
+    user = models.ForeignKey(customuser, on_delete=models.CASCADE)
+    permission = models.ForeignKey('auth.Permission', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'permission')
+
+    def __str__(self):
+        return f"{self.user} - {self.permission}"
+
+class AdminUser(customuser):
+    position = models.CharField(max_length=50, blank=True)
+    department = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.position} in {self.department}"
  
 
 class customer(models.Model):
@@ -89,6 +103,19 @@ class itemvariant(models.Model):
         return f"Variant {self.variant_name}: {self.variant_value} - {self.item}"
     class Meta:
         db_table = 'apps_itemvariant'
+        
+        
+        
+class Stock(models.Model):
+    item = models.ForeignKey(item, on_delete=models.CASCADE)  
+    item_variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE)  
+    quantity_available = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    def __str__(self):
+        return f'{self.item.product_name} - {self.item_variant.variant_name}: {self.quantity_available} available'
+    
+    class Meta:
+        db_table = 'apps_stock'
     
 class lead(models.Model):
     lead = models.AutoField(primary_key=True)
@@ -98,8 +125,9 @@ class lead(models.Model):
     contact = models.CharField(max_length=55, blank=True, null=True)
     score = models.IntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    
     def __str__(self):
-        return self.company_name
+        return self.company_name if self.company_name else "Unnamed Lead"
     class Meta:
         db_table = 'apps_lead'
         
@@ -110,7 +138,7 @@ class leaddata(models.Model):
     owner = models.CharField(max_length=55, blank=True, null=True)
     contract_file = models.FileField(upload_to='contracts/', blank=True, null=True)
     nextdate = models.DateField()
-    revenue = models.DecimalField(max_digits=10, decimal_places=10, blank=True, null=True)
+    revenue = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     size = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
     number = models.DecimalField(max_digits=10, decimal_places=10, blank=True, null=True)
     score = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -124,8 +152,10 @@ class leaddata(models.Model):
         ('closed', 'Closed'),
     ] , blank=True, null=True)
     note = models.TextField(blank=True, null=True)
+    
     def __str__(self):
-     return f"leaddata {self.status or 'No Status'} - {self.score if self.score is not None else 0}" 
+        return self.owner if self.owner else "No data provided"
+    
     class Meta:
         db_table = 'apps_leaddata'
 
@@ -166,7 +196,7 @@ class bonreception(models.Model):
     quantity_delivered = models.IntegerField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
     transportation_type = models.CharField(max_length=100, blank=True, null=True)
-    variant_id = models.ForeignKey('itemvariant', on_delete=models.CASCADE, null=True, blank=True)
+    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'apps_bonreception'
@@ -202,6 +232,7 @@ class retour(models.Model):
     client = models.ForeignKey(customer, on_delete=models.CASCADE)
     produit = models.ForeignKey(item, on_delete=models.CASCADE)
     quantite_retournee = models.PositiveIntegerField()
+    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE) 
     raison_retour = models.TextField(blank=True, null=True)
     date_retour = models.DateField(auto_now_add=True)
     livreur = models.CharField(max_length=55, blank=True, null=True)
@@ -213,3 +244,7 @@ class retour(models.Model):
         return f"retour de {self.client} pour {self.produit}"
     class Meta:
         db_table = 'apps_retour' 
+        
+        
+        
+

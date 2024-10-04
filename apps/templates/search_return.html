@@ -19,44 +19,52 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <a class="navbar-brand">ARKEYEZ</a>
-            <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-                    <a class="navbar-brand" >ARKEYEZ</a>
-                    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                        <li class="nav-item text-dark font-weight-bold">
-                        <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-                    </li> <span> </span >
-                    <li class="nav-item text-dark font-weight-bold">
-                        <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-                    </li>
-                    <li class="nav-item text-dark font-weight-bold">
-                     <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
-                 </li> <span> </span >
-                 <li class="nav-item text-dark font-weight-bold">
-                     <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
-                 </li>
-                 <li class="nav-item text-dark font-weight-bold">
-                  <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-              </li>
-                </ul>
-        </div>
+            <a class="navbar-brand" >ARKEYEZ</a>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <li class="nav-item text-dark font-weight-bold">
+                <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
+            </li> <span> </span >
+            <li class="nav-item text-dark font-weight-bold">
+                <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
+            </li>
+            <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
+         </li> <span> </span >
+         <li class="nav-item text-dark font-weight-bold">
+             <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
+         </li>
+         <li class="nav-item text-dark font-weight-bold">
+          <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
+      </li>
+        </ul>
+                <div class="search-container">
+                    <form class="d-flex" method="GET" action="{% url 'search_return' %}">
+                        {% csrf_token %}
+                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
+                        <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
+                    </form>
+                </div>
+            </div>
     </nav>
 <!----------------------- Main Container -------------------------->
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="row border rounded-5 p-3 bg-white shadow box-area">
             <div class="row align-items-center">
                 <div class="header-text mb-4">
-                    <h1>Search Results for "{{ query }}"</h1>
-                </div> 
-                <div class="container mt-5">
-    {% if result %}
+                    <h3>the return you searched for </h3>
+               </div> 
+               <div class="search-container">
+                <form class="d-flex" method="GET" action="{% url 'search_return' %}">
+                    {% csrf_token %}
+                    <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by id...">
+                    <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
+                </form>
+            </div>
+        <div class="container mt-5">
         <table class="table">
             <thead>
                 <tr>
+                    <th>id</th>
                     <th>Client</th>
                     <th>Product</th>
                     <th>Quantity Returned</th>
@@ -68,21 +76,28 @@
                 </tr>
             </thead>
             <tbody>
+                {% for retour in retours %}
+
                 <tr>
-                    <td>{{ result.client }}</td>
-                    <td>{{ result.produit }}</td>
-                    <td>{{ result.quantite_retournee }}</td>
-                    <td>{{ result.raison_retour }}</td>
-                    <td>{{ result.date_retour }}</td>
-                    <td>{{ result.livreur }}</td>
-                    <td>{{ result.informations_supp }}</td>
-                    <td>{{ result.statut_retour }}</td>
+                    <td>{{ retour.retour }}</td>
+                    <td>{{ retour.client }}</td>
+                    <td>{{ retour.produit }}</td>
+                    <td>{{ retour.quantite_retournee }}</td>
+                    <td>{{ retour.raison_retour }}</td>
+                    <td>{{ retour.date_retour }}</td>
+                    <td>{{ retour.livreur }}</td>
+                    <td>{{ retour.informations_supp }}</td>
+                    <td>{{ retour.statut_retour }}</td>
+                    <td><a href="{% url 'update_retour' retour.retour %}"> edit </a></td>
+
                 </tr>
             </tbody>
+            {% empty %}
+            <tr>
+                <td colspan="4">No return note available with that id</td>
+            </tr>
+        {% endfor %}
         </table>
-    {% else %}
-        <p>No return found with the ID "{{ query }}"</p>
-    {% endif %}
 </div>
 </div>
 <div class="input-group mb-3 d-flex justify-content-center">

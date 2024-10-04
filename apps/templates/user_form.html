@@ -1,6 +1,5 @@
-
 {% load static %}
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="{% static 'main.js' %}"></script>
-    <title>COM ARKEYEZ | return</title>
+    <title>COM ARKEYEZ | accounts</title>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
@@ -37,71 +36,62 @@
           <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
       </li>
         </ul>
-                <div class="search-container">
-                    <form class="d-flex" method="GET" action="{% url 'search_bonreception' %}">
-                        {% csrf_token %}
-                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
-                        <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
-                    </form>
-                </div>
+
             </div>
     </nav>
-    <!----------------------- Main Container -------------------------->
-     <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <!----------------------- Login Container -------------------------->
-    <div class="row border rounded-5 p-3 bg-white shadow box-area">
-
 <!----------------------- Main Container -------------------------->
-<div class="row align-items-center">
-    <div class="header-text mb-4">
-         <h3>the reception you searched for </h3>
-    </div> 
-    <div class="search-container">
-        <form class="d-flex" method="GET" action="{% url 'search_bonreception' %}">
-            {% csrf_token %}
-            <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by name...">
-            <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
-        </form>
-    </div>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="row border rounded-5 p-3 bg-white shadow box-area">
+           
+            <div class="row align-items-center">
+                <div class="header-text mb-4">
+                    <h3>creat a normal user account</h3>
+                </div> 
+                {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST" action="{% url 'user_create' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.username.label }} {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
+                <div class="form-group">
+                    {{ form.full_name.label }} {{ form.full_name }}
+                    {{ form.full_name.errors }}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label }} {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                <div class="form-group">
+                    {{ form.password1.label }} {{ form.password1 }}
+                    {{ form.password1.errors }}
+                    <small>Your password must contain at least 8 characters.</small>
+                </div>
+                <div class="form-group">
+                    {{ form.password2.label }} {{ form.password2 }}
+                    {{ form.password2.errors }}
+                </div>
+                <button type="submit" class="btn btn-primary">Create User</button>
+            </form>
+            
 
-    <div class="container mt-5">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>date</th>
-                    <th>address</th>
-                    <th>supplier</th>
-                    <th>item</th>
-                    <th>quantity delivered</th>
-                    <th>unit_of_measure</th>
-                    <th>transportation_type</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for bonreception in bonreceptions %}
-                <tr>
-                    <td>{{ bonreception.delivery }}</td>
-                    <td>{{ bonreception.delivery_date }}</td>
-                    <td>{{ bonreception.delivery_address }}</td>
-                    <td>{{ bonreception.supplier }}</td>
-                    <td>{{ bonreception.item }}</td>
-                    <td>{{ bonreception.quantity_delivered }}</td>
-                    <td>{{ bonreception.unit_of_measure }}</td>
-                    <td>{{ bonreception.transportation_type }}</td>
-            </tbody>
-            {% empty %}
-            <tr>
-                <td colspan="4">No reception note available with that id </td>
-            </tr>
-        {% endfor %}
-        </table>
-</div>
-</div>
+
+
 <div class="input-group mb-3 d-flex justify-content-center">
-    <a href="{% url 'home' %}">
-        <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">home</button>
+    <a href="{% url 'user_list' %}" >  
+    <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">Back to List</button>
     </a>
+   </div>
+
+
+
+
+</div>
 </div>
 </div> 
 </div>
