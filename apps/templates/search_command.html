@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap 4.5.2 Link -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | orders</title>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
+            </li>
+        </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        <h3 class="text-center mb-4">the order you searched for</h3>
+
+        <!-- Search Form (by ID) -->
+        <div class="search-container">
+            <form class="d-flex" methode="GET" action="{% url 'search_command' %}"> 
+                {% csrf_token %}
+                <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" placeholder="Search delivery...">
+                <button class="search-button btn btn-primary" type="submit">Search</button>
+            </form>
+        </div>
+    
+
+        <!-- Table for Factures -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>customer</th>
+                        <th>order date</th>
+                        <th>total amount</th>
+                        <th>status</th>
+                        <th>shipping address</th>
+                        <th>delivery</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for Command in commands %}
+                    <tr>
+                        <td>{{ Command.Command_id}}</td>
+                        <td>{{ Command.customer.customer_name }}</td>
+                        <td>{{ Command.order_date }}</td>
+                        <td>{{ Command.total_amount }}</td>
+                        <td>{{ Command.statu }}</td>
+                        <td>{{ Command.shipping_address }}</td>
+                        <td>{{ Command.delivery.delivery_person }}</td>
+                        <td>
+                        <a href="{% url 'update_command' Command.Command_id %}">
+                              <button class="btn btn-sm btn-custom">Edit</button>
+                            </a>
+                            <a href="{% url 'delete_command' Command.Command_id %}" onclick="return confirm('Are you sure you want to delete this order?')">
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>Delete
+                                </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="13" class="text-center">No order found..</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Delete Button -->
+        <div class="input-group mb-3 d-flex justify-content-center">
+            <a href="{% url 'home' %}">
+                <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom">Home</button>
+            </a>
+        </div>
+    </div>
+
+ 
+    <footer class="mt-5 bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About Us</h5>
+                    <p>ARKEYEZ is a startup offering ERP and CRM solutions to streamline work, making it digital and efficient.</p>
+                    <div>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="text-white"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">About</a></li>
+                        <li><a href="#" class="text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white">Help</a></li>
+                        <li><a href="#" class="text-white">Terms & Conditions</a></li>
+                        <li><a href="#" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fa fa-map-marker me-2"></i>Tunisia, Tataouine Nord, Cyber Park 3200</li>
+                        <li><i class="fa fa-phone me-2"></i><a href="tel:20 890 113" class="text-white">20 890 113</a></li>
+                        <li><i class="fa fa-envelope me-2"></i><a href="mailto:info@arkeyes.com" class="text-white">info@arkeyes.com</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <div class="text-center text-white bg-dark py-2">
+        <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <style>
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+
+        /* For smaller buttons */
+        .btn-sm {
+            font-size: 12px;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+</body>
+</html>

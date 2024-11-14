@@ -9,6 +9,48 @@ body {
     flex-direction: column; /* Add this */
     min-height: 100vh;
 }
+.card {
+    width: 100%; /* This ensures cards fill their column's width */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+.card-body {
+    padding: 20px;
+}
+
+
+.card-body .form-label,
+.card-body .form-control {
+    margin-bottom: 15px; /* Reduces spacing between items for a more compact layout */
+}
+
+.card-body {
+    background-color: #103cbe; /* Keeps blue background color for the left section */
+    color: white; /* Ensures text remains white for readability on the blue background */
+}
+
+.form-control {
+    border-radius: 8px; /* Ensure input fields have rounded edges for consistency */
+}
+.box-area {
+    max-width: 100%; /* Adjust to make the box as wide as needed */
+}
+
+.left-box, .right-box {
+    padding: 20px;
+}
+
+.left-box {
+    background-color: #103cbe;
+    color: white;
+}
+
+@media (min-width: 768px) {
+    .box-area {
+        padding: 15px;
+    }
+}
 
 footer {
     margin-top: auto; /* Add this */
@@ -279,9 +321,43 @@ footer .container .sec p
     background-color: #007bff;
     color: #fff;
     border: 1px solid #007bff;
-    border-radius: 0 5px 5px 0; /* Rounded corners on the right */
+    border-radius: 0 5px 5px 0; 
     cursor: pointer;
 }
 .navbar .btn {
     margin-right: 10px;
+}
+.btn-custom {
+    background-color: #007bff; 
+    color: white;
+    border: none; 
+}
+
+.btn-custom:hover {
+    background-color: #0056b3;
+    color: white; 
+}
+
+
+
+.bg-gray {
+    background-color: #343a40; /* Dark gray background for form fields */
+}
+
+.text-dark {
+    color: #ffffff; /* White text for better contrast */
+}
+
+.border-primary {
+    border-color: #007bff !important; /* Bootstrap primary color for borders */
+}
+
+.form-control:focus {
+    border-color: #007bff; /* Change border color on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Light blue shadow on focus */
+}
+
+.form-select:focus {
+    border-color: #007bff; /* Change border color on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Light blue shadow on focus */
 }

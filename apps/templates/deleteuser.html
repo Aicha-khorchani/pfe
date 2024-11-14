@@ -10,31 +10,31 @@
     <title>COM ARKEYEZ | delete  user</title>
 </head>
 <body>  
-       <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-        <a class="navbar-brand" >ARKEYEZ</a>
-        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-            <li class="nav-item text-dark font-weight-bold">
-            <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-        </li> <span> </span >
-        <li class="nav-item text-dark font-weight-bold">
-            <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-        </li>
-        <li class="nav-item text-dark font-weight-bold">
-         <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
-     </li> <span> </span >
-     <li class="nav-item text-dark font-weight-bold">
-         <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
-     </li>
-     <li class="nav-item text-dark font-weight-bold">
-      <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-  </li>
-    </ul>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+            </div>
         </div>
-</nav>
+    </nav>
     <!----------------------- Main Container -------------------------->
      <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <!----------------------- Login Container -------------------------->
@@ -56,10 +56,14 @@
                 <form method="POST">
                     {% csrf_token %}
                 <div class="input-group mb-3">
-                    <h3>Are you sure you want to delete {{ user.username }}?</h3>                </div>
-                <div class="input-group mb-3">
-                    <button type="submit" class="btn btn-lg btn-primary w-100 fs-6 btn-custom"  onclick="return confirm('Are you sure you want to delete this user ?')" style="min-width: 200px;">Confirm Delete</button>
-                </div>
+                    <h2>Are you sure you want to delete {{ user.username }}?</h2>                </div>
+                    <div class="input-group mb-3 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-sm btn-danger" 
+                            onclick="return confirm('Are you sure you want to delete this variant?')" 
+                            style="min-width: 200px;">
+                            <i class="fas fa-trash"></i> Delete user
+                        </button>
+                    </div>
             </form>
             <div class="input-group mb-3 d-flex justify-content-center">
                 <a href="{% url 'user_list' %}">
@@ -71,56 +75,44 @@
       </div>
     </div>
        
-<footer>
-    <div class="footer-container">
-      <div class="container">
-         <div class="sec aboutus">
-            <h2>About Us</h2>
-            <p>An all-in-one web application designed to streamline sales and inventory management. Track and manage leads, clients, and their data with ease. Add, delete, and update products and their variants, handle orders, monitor client volumes, and manage retailers. With secure login, registration, and logout features, the app also organizes stock efficiently, giving users full control over their business operations.</p>
-            <ul class="sci">
-             <li><a href="#"><i class="fa-brands fa-linkedin"r></i></a></li>
-             <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
-             <li><a href="#"><i class="fa-brands fa-youtube"></i></a></li>
-             <li><a href="#"><i class="fa-solid fa-envelope"></i></a></li>
-           </ul>
-         </div>
+    <footer class="mt-5 bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About Us</h5>
+                    <p>ARKEYEZ is a startup offering ERP and CRM solutions to streamline work, making it digital and efficient.</p>
+                    <div>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-linkedin"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fa-brands fa-youtube"></i></a>
+                        <a href="#" class="text-white"><i class="fa-solid fa-envelope"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">About</a></li>
+                        <li><a href="#" class="text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white">Help</a></li>
+                        <li><a href="#" class="text-white">Terms & Conditions</a></li>
+                        <li><a href="#" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fa fa-map-marker me-2"></i>Tunisia, Tataouine Nord, Cyber Park 3200</li>
+                        <li><i class="fa fa-phone me-2"></i><a href="tel:20 890 113" class="text-white">20 890 113</a></li>
+                        <li><i class="fa fa-envelope me-2"></i><a href="mailto:info@arkeyes.com" class="text-white">info@arkeyes.com</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    
-        
-         <div class="container">
-         <div class="sec quicklinks">
-            <h2>Quick Links</h2>
-            <ul>
-               <li><a href="#">About</a></li>
-               <li><a href="#">Privacy Policy</a></li>
-               <li><a href="#">Help</a></li>
-               <li><a href="#">Terms & Conditions</a></li>
-               <li><a href="#">Contact</a></li>
-            </ul>
-         </div>
-        </div>
-    
-        <d class="container">
-         <div class="sec contact">
-            <h2>Contact Us</h2>
-            <ul class="info">
-               <li><span><i class="fa fa-map-marker" aria-hidden="true"></i></span>
-                  <span>Tunisia<br>Tataouine Nord<br>Cyber Park 3200</span>
-               </li>
-               <li><span><i class="fa fa-phone" aria-hidden="true"></i></span>
-                  <p><a href="tel:20 890 113">20 890 113</a><br></p>
-               </li>
-               <li><span><i class="fa fa-envelope" aria-hidden="true"></i></span>
-                  <p><a href="mailto:info@arkeyes.com">info@arkeyes.com</a></p>
-               </li>
-            </ul>
-         </div>
-        </div>
-    
-      </div>
     </footer>
-    <div class="copyrightText">
-        <p>Copyright 2024 Aicha Khorchani. All rights reserved.</p>
-      </div>
+    <div class="text-center text-white bg-dark py-2">
+        <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,1 +1,0 @@
-just trying to fucking commmit if the fucking git just let me 
