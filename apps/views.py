@@ -1,17 +1,25 @@
 import decimal
+import json
+from django.http import JsonResponse
+from django.db import transaction 
 import logging
 from django.db import IntegrityError 
+from django.forms import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework.decorators import api_view
-from .models import  Livreurs, Note, Stock, customuser, facture, leaddata, lead, customer, itemvariant, item, supplier,Notification , retour,bonreception ,AdminUser,Delivery,Command
-from .forms import CustomUserChangeForm, DeleteSupplierForm, FactureForm, LivreurCreationForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm, itemForm
-from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm,AdminUserCreationForm  
+from .models import  Livreurs, Note, Stock, customuser,CommandLine, facture, leaddata, lead, customer, itemvariant, item, supplier,Notification , retour,bonreception ,AdminUser,Delivery,Command
+from .forms import CommandForm,CommandLineFormSet, CustomUserChangeForm, DeleteSupplierForm, FactureForm, LivreurCreationForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm, itemForm
+from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm,AdminUserCreationForm , BonReceptionLineFormSet  
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from decimal import Decimal, InvalidOperation
 from django.contrib.auth.decorators import user_passes_test ,login_required
+from django.db.models import Prefetch
+import traceback
+import re
+
 
 
 
@@ -34,27 +42,96 @@ def registration_view(request):
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def add_bonreception(request):
     if request.method == 'POST':
+        print("POST Data:", request.POST)
         form = BonReceptionForm(request.POST)
-        if form.is_valid():
-            bonreception = form.save()
-    #zdt partie hethy bch tautomatizi l stock
-            stock, created = Stock.objects.get_or_create(item=bonreception.item, item_variant=bonreception.variant)
-            if created :
-                  stock.quantity_available = bonreception.quantity_delivered
-            else:
-                  stock.quantity_available += bonreception.quantity_delivered
-            stock.save()
-     #zdt partie hethy bch tautomatizi l stock
-            return redirect('all_bonreception')
+        formset = BonReceptionLineFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():  # Ensure atomicity
+                    bon_reception = form.save()
+                    print("Form is valid, bon_reception saved:", bon_reception)
+
+                    for form_line in formset:
+                        if form_line.cleaned_data:
+                            line = form_line.save(commit=False)
+
+                            # Parse `variant_combination` from JSON string
+                            variant_combination_str = form_line.cleaned_data.get('variant_combination', '{}')
+                            variants = json.loads(variant_combination_str) if isinstance(variant_combination_str, str) else variant_combination_str
+
+                            # Validate the variant combination against itemvariant
+                            item_instance = line.item
+                            for variant_name, variant_value in variants.items():
+                                try:
+                                    variant = itemvariant.objects.get(
+                                        item=item_instance,
+                                        variant_name=variant_name,
+                                        variant_values__contains=[variant_value]
+                                    )
+                                except itemvariant.DoesNotExist:
+                                    raise ValueError(f"Invalid variant combination: {variant_name} = {variant_value} for item {item_instance.product_name}")
+
+                            # Save the line with bon_reception reference
+                            line.bon_reception = bon_reception
+                            line.variant_combination = variants
+                            line.save()
+
+                            # Update or create stock for this item-variant combination
+                            stock, created = Stock.objects.get_or_create(
+                                item=line.item,
+                                item_variant=variant,  # The validated variant from itemvariant
+                                variant_combination=variants,
+                                defaults={'quantity_available': 0}
+                            )
+
+                            # Add the line's quantity to the stock
+                            line_quantity = form_line.cleaned_data.get('quantity')  # Now this is an integer
+                            stock.quantity_available += line_quantity
+                            stock.save()
+
+                    print("All lines and stock updated successfully.")
+                    return redirect('all_bonreception')
+
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                form.add_error(None, "An unexpected error occurred. Please try again.")
         else:
-            print(form.errors)
+            print("Form Errors:", form.errors)
+            print("Formset Errors:", formset.errors)
     else:
         form = BonReceptionForm()
-    suppliers = supplier.objects.all()  
-    products = item.objects.all()
-    variants = itemvariant.objects.all()
+        formset = BonReceptionLineFormSet()
 
-    return render(request, 'addreception.html', {'form': form,'suppliers': suppliers,'products': products,'variants': variants,})
+    suppliers = supplier.objects.all()
+    items_queryset = item.objects.prefetch_related(
+        Prefetch(
+            'itemvariant_set',
+            queryset=itemvariant.objects.all()
+        )
+    )
+
+    # Prepare dynamic variant data for the frontend
+    variant_data = {}
+    for item_obj in items_queryset:
+        variant_data[item_obj.pk] = {
+            variant.variant_name: variant.variant_values
+            for variant in item_obj.itemvariant_set.all()
+        }
+
+    return render(request, 'addreception.html', {
+        'form': form,
+        'formset': formset,
+        'suppliers': suppliers,
+        'items': items_queryset,
+        'variant_data': json.dumps(variant_data),
+    })
+
+
+
+
+
+
 
 
 
@@ -87,7 +164,7 @@ def update_bonreception(request, delivery):
     products = item.objects.all()
     variants = itemvariant.objects.all()
 
-    return render(request, 'updatereception.html', {'form': form,'suppliers': suppliers,'products': products,'variants': variants,})
+    return render(request, 'updatereception.html', {'form': form,'suppliers': suppliers,'products': products,'variants': variants})
 
 
 def all_bonreception(request):
@@ -105,8 +182,6 @@ def search_bonreception(request):
                 Q(supplier_id__supplier_name__icontains=searched) |
                 Q(item__product_name__icontains=searched) |
                 Q(quantity_delivered__icontains=searched) |
-                Q(unit_of_measure__icontains=searched) |
-                Q(transportation_type__icontains=searched) |
                 Q(variant__variant_name__icontains=searched)
             )
         else:
@@ -133,37 +208,146 @@ def all_retour(request):
 
 
 
-     
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db import transaction
+import json
+
 def add_retour(request):
     if request.method == 'POST':
-        form = RetourForm(request.POST)
-        if form.is_valid():
-            retour = form.save()
-            #zdt partie hethy 3 ligne bch notomatizi stock ba9i ken i5dm cv 
-            stock, created = Stock.objects.get_or_create(item=retour.produit, item_variant=retour.variant)
-            if created:
-                stock.quantity_available = retour.quantite_retournee
-            else:
-                stock.quantity_available += retour.quantite_retournee
-            stock.save()
-              #zdt partie hethy 3 ligne bch notomatizi stock ba9i ken i5dm cv 
-            return redirect('all_retour')
-        else:
-          print(form.errors)
-          print(request.POST)
-        
-    else:
-        form = RetourForm()
-        
-    clients = customer.objects.all()  
-    suppliers = supplier.objects.all()  
-    produits = item.objects.all()  
-    variants = itemvariant.objects.all()  
-    livreurs = Livreurs.objects.all() 
-    numero_cs = Command.objects.all()
-    
-    return render(request, 'addretour.html', {'form': form,'clients': clients,'suppliers': suppliers,'produits': produits,'variants': variants,'livreurs': livreurs,'numero_cs': numero_cs,})
+        try:
+            with transaction.atomic():
+                # Debug incoming POST data
+                print("===== POST DATA =====")
+                print(request.POST)
+                print("=====================")
 
+                # Extract data from POST request
+                facture_id = request.POST.get('facture')
+                selected_commands = request.POST.get('selected_commands', '[]')
+                supplier_id = request.POST.get('supplier')
+                raison_retour = request.POST.get('raison_retour')
+                date_retour = request.POST.get('date_retour')
+                livreur_id = request.POST.get('livreur')
+                informations_supp = request.POST.get('informations_supp')
+
+                # Ensure selected_commands is parsed correctly
+                try:
+                    selected_commands = json.loads(selected_commands)
+                    if isinstance(selected_commands, int):  # Single command case
+                        selected_commands = [selected_commands]
+                    elif not isinstance(selected_commands, list):  # Invalid data
+                        raise ValueError("Invalid selected_commands format")
+                except json.JSONDecodeError:
+                    raise ValueError("Failed to parse selected_commands")
+
+                # Debug extracted data
+                print(f"Facture ID: {facture_id}")
+                print(f"Selected Commands: {selected_commands}")
+                print(f"Supplier ID: {supplier_id}")
+                print(f"Reason for Return: {raison_retour}")
+                print(f"Return Date: {date_retour}")
+                print(f"Livreur ID: {livreur_id}")
+                print(f"Additional Information: {informations_supp}")
+
+                # Validate and retrieve associated objects
+                facture_instance = get_object_or_404(facture, pk=facture_id)
+                supplier_instance = get_object_or_404(supplier, pk=supplier_id)
+                livreur_instance = get_object_or_404(Livreurs, pk=livreur_id)
+
+                # Debug validated objects
+                print(f"Facture Instance: {facture_instance}")
+                print(f"Supplier Instance: {supplier_instance}")
+                print(f"Livreur Instance: {livreur_instance}")
+
+                # Create the Retour instance
+                retour_instance = retour.objects.create(
+                    facture=facture_instance,
+                    supplier=supplier_instance,
+                    raison_retour=raison_retour,
+                    date_retour=date_retour,
+                    livreur=livreur_instance,
+                    informations_supp=informations_supp,
+                )
+                print(f"Retour Instance Created: {retour_instance}")
+
+                # Loop through selected commands to process stock updates
+                for command_id in selected_commands:
+                    print(f"Processing Command ID: {command_id}")
+                    command = get_object_or_404(Command, pk=command_id)
+
+                    for line in command.lines.all():
+                        product = line.product
+                        variant_combination = line.variant_combination
+                        quantity = line.quantity
+
+                        # Debug command line details
+                        print(f"Command Line - Product: {product}, Variant Combination: {variant_combination}, Quantity: {quantity}")
+
+                        # Update stock
+                        stock, created = Stock.objects.get_or_create(
+                            item=product,
+                            variant_combination=variant_combination
+                        )
+                        if created:
+                            stock.quantity_available = quantity
+                            print(f"New Stock Created: {stock}")
+                        else:
+                            stock.quantity_available += quantity
+                            print(f"Updated Stock: {stock}")
+
+                        stock.save()
+                        print(f"Stock Saved: {stock}")
+
+                print("Retour Process Completed Successfully")
+                return redirect('all_retour')  # Redirect to the page listing all returns
+
+        except ValueError as e:
+            print(f"Validation Error: {str(e)}")
+            return JsonResponse({"success": False, "message": str(e)}, status=400)
+
+        except Exception as e:
+            print(f"Unexpected Error: {str(e)}")
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+    # For GET request, prepare data for the form
+    factures = facture.objects.all()  # Fetch all factures
+    livreurs = Livreurs.objects.filter(user_type='livreur')  # Fetch only delivery persons
+    suppliers = supplier.objects.all()  # Fetch all suppliers
+
+    # Debug data being sent to the template
+    print("Rendering Add Retour Form")
+    print(f"Factures: {factures}")
+    print(f"Livreurs: {livreurs}")
+    print(f"Suppliers: {suppliers}")
+
+    return render(request, 'addretour.html', {
+        'factures': factures,
+        'livreurs': livreurs,
+        'suppliers': suppliers,
+    })
+
+
+
+
+
+def get_commands(request, facture_id):
+    try:
+        # Get the facture and its associated commands
+        selected_facture = facture.objects.get(pk=facture_id)
+        commands = selected_facture.commands.all()
+        
+        # Prepare the data for the response
+        command_data = [
+            {"id": command.id, "description": f"Command {command.id} - {command.shipping_address}"}
+            for command in commands
+        ]
+        
+        return JsonResponse({"success": True, "commands": command_data})
+    except facture.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Facture not found."}, status=404)
+    except Exception as e:
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
 
 
 
@@ -351,8 +535,24 @@ logger = logging.getLogger(__name__)
 
 
 def get_stock_levels(request):
-    stocks = Stock.objects.all()
-    return render(request, 'allstock.html', {'stocks': stocks})
+    stocks = Stock.objects.select_related('item', 'item_variant').all()
+    stock_data = []
+
+    for stock in stocks:
+        item_name = stock.item.product_name
+        variant_combination = stock.variant_combination  # This is already a dictionary
+        quantity = stock.quantity_available  # This is now an integer
+
+        # Prepare the stock entry
+        stock_entry = {
+            "item": item_name,
+            "variant_combination": variant_combination,
+            "quantity": quantity,
+        }
+        stock_data.append(stock_entry)
+
+    return render(request, 'allstock.html', {'stocks': stock_data})
+
 
 
 
@@ -377,7 +577,7 @@ def search_itemvariant(request):
         search2 = request.GET.get('search2', '')
         if search2:
             query = Q(variant_name__icontains=search2) | \
-                    Q(variant_value__icontains=search2) | \
+                    Q(variant_values__icontains=search2) | \
                     Q(item__product_name__icontains=search2)
             itemvariants = itemvariant.objects.filter(query)
         else:
@@ -421,80 +621,48 @@ def delete_facture(request):
 
 
 
-
-
-
-
-
 def update_facture(request, facture_id):
-    # Retrieve the facture object from the database
-    fact = get_object_or_404(facture, pk=facture_id)
-    # Get the current stock for the item and variant
-    current_stock = Stock.objects.get(item=fact.product, item_variant=fact.variant)
+    if request.method == "GET":
+        try:
+            # Fetch the facture instance
+            facture_instance = get_object_or_404(facture, pk=facture_id)
+
+            # Fetch all customers
+            customers = customer.objects.all()
+            print("Customers Fetched:", customers)  # Debugging
+
+            # Fetch related commands for the facture's customer
+            commands = Command.objects.filter(customer=facture_instance.customer)
+            print("Commands Fetched for Customer:", commands)  # Debugging
+
+            # Fetch selected commands associated with this facture
+            selected_command_ids = list(facture_instance.commands.values_list('id', flat=True))
+            print("Selected Commands for Facture:", selected_command_ids)  # Debugging
+
+            # Pass the data to the response
+            return JsonResponse({
+                "success": True,
+                "facture": {
+                    "id": facture_instance.facture_id,
+                    "customer": facture_instance.customer.customer,  # Selected customer ID
+                    "selected_commands": selected_command_ids,  # Pre-selected commands
+                },
+                "customers": list(customers.values("customer", "customer_name")),  # Include customer data
+                "commands": [{"id": cmd.id, "label": str(cmd)} for cmd in commands],  # Use __str__() for label
+            })
+        except Exception as e:
+            print("Error rendering update facture form:", e)
+            return JsonResponse({"success": False, "message": "An unexpected error occurred while rendering the form."})
+
+
+
+
     
-    # Print the current stock level for debugging
-    print(f"Current Stock: {current_stock.quantity_available}")
-
-    # Store the old quantity before any changes
-    old_quantity = fact.qte_facture
-
-    if request.method == 'POST':
-        form = FactureForm(request.POST, instance=fact)
-
-        if form.is_valid():
-            # Get the new quantity from the form data
-            new_quantity = form.cleaned_data['qte_facture']
-
-            # Calculate the difference between the new and old quantities
-            quantity_difference = new_quantity - old_quantity
-
-            # Print debugging information
-            print(f"Old Quantity: {old_quantity}, New Quantity: {new_quantity}")
-            print(f"Quantity Difference: {quantity_difference}")
-
-            if quantity_difference > 0:
-                # Reducing stock since more quantity is being invoiced
-                if current_stock.quantity_available < quantity_difference:
-                    print("Not enough stock available")
-                    return render(request, 'updatefacture.html', {
-                        'form': form,
-                        'error': 'Not enough stock available for the updated quantity.'
-                    })
-                current_stock.quantity_available -= quantity_difference
-            elif quantity_difference < 0:
-                # Returning stock since less quantity is being invoiced
-                current_stock.quantity_available += abs(quantity_difference)
-
-            # Print the updated stock level for debugging
-            print(f"New Stock Level: {current_stock.quantity_available}")
-            
-            # Save the updated stock level
-            current_stock.save()
-            # Save the updated facture data
-            form.save()
-
-            # Redirect to the list of all factures after successful update
-            return redirect('get_all_factures')
-        else:
-            # Print form errors for debugging
-            print(form.errors)
-    else:
-        form = FactureForm(instance=fact)
-
-    # Fetch all necessary data for dropdown lists
-    products = item.objects.all()
-    variants = itemvariant.objects.all()
-    customers = customer.objects.all()
-    commands = Command.objects.all()
-
-    return render(request, 'updatefacture.html', {
-        'form': form,
-        'products': products,
-        'variants': variants,
-        'current_stock': current_stock,
-        'commands': commands,
-        'customers': customers
-    })
+    
+    
+def get_variants(request, item):
+    variants = itemvariant.objects.filter(item_id=item).values('id', 'variant_values')
+    return JsonResponse({"variants": list(variants)})
 
 
 
@@ -519,7 +687,9 @@ def update_facture(request, facture_id):
 
 
 def get_all_factures(request):
-    factures = facture.objects.all()
+    factures = facture.objects.prefetch_related(
+        'commands__lines'  
+    ).all()
     return render(request, 'allfacture.html', {'factures': factures})
 
 
@@ -549,66 +719,113 @@ def search_facture(request):
         
     
     
-def add_facture(request):
-    if request.method == 'POST':
-        print("POST Data:", request.POST)  
-        datef = request.POST.get('datef')
-        customer_id = request.POST.get('customer_id')
-        command = request.POST.get('command')
-        addressf = request.POST.get('addressf')
-        product = request.POST.get('item')
-        tax = request.POST.get('tax')
-        discount = request.POST.get('discount')
-        payment_method = request.POST.get('Payment_Method')
-        variant = request.POST.get('variant')
-        qte_facture = request.POST.get('qte_facture')
-        ttc = request.POST.get('TTC')
-        price = request.POST.get('price')
+    
+def process_commands_and_calculate_total(commands, customer_type):
+    """
+    Process selected commands, validate stock, deduct quantities, 
+    and calculate the total amount for the facture.
+    """
+    total_amount = Decimal(0)
+    processed_commands = []
 
-        try:
-            customer_obj = customer.objects.get(pk=customer_id)
-            product_obj = item.objects.get(pk=product)
-            variant_obj = itemvariant.objects.get(pk=variant)
-            command_obj = Command.objects.get(pk=command)
-        except (customer.DoesNotExist, item.DoesNotExist, itemvariant.DoesNotExist, Command.DoesNotExist):
-            return render(request, 'addfacture.html', {
-                'error': 'Invalid customer, product, variant, or command provided.'
-            })
+    for command in commands:
+        # Validate the command object
+        if not isinstance(command.variant_combination, list):
+            raise ValueError(f"Invalid variant_combination format for command {command.pk}")
 
-        facture_obj = facture(
-            datef=datef,
-            addressf=addressf,
-            tax=tax,
-            discount=discount,
-            payment_method=payment_method,
-            qte_facture=qte_facture,
-            ttc=ttc,
-            price=price,
-            product=product_obj,
-            variant=variant_obj,
-            customer=customer_obj,
-            command=command_obj,
-        )
-        facture_obj.save()
-        stock, created = Stock.objects.get_or_create(item=product_obj, item_variant=variant_obj)
-        if created:
-            stock.quantity_available = 0  
-        if stock.quantity_available < decimal.Decimal(qte_facture):
-            return render(request, 'addfacture.html', {
-                'error': 'Not enough stock available for this quantity.'
-            })
-        else:
-            stock.quantity_available -= decimal.Decimal(qte_facture)
+        # Process variant combinations for the command
+        for variant_data in command.variant_combination:
+            variants = variant_data.get("variant_combination")
+            quantity = variant_data.get("quantity")
+
+            if not variants or not quantity:
+                raise ValueError(f"Missing data in variant_combination for command {command.pk}")
+
+            # Find matching stock
+            stock = Stock.objects.filter(
+                item_id=command.item_id,
+                variant_combination=variants
+            ).first()
+
+            if not stock or stock.quantity_available < quantity:
+                raise ValueError(f"Insufficient stock for {variants} in command {command.pk}")
+
+            # Deduct stock
+            stock.quantity_available -= quantity
             stock.save()
 
-        return redirect('get_all_factures')  
-    else:
-        customers = customer.objects.all()
-        commands = Command.objects.all()
-        products = item.objects.all()
-        variants = itemvariant.objects.all()
+        # Calculate price based on customer type
+        price = command.item.volume_price if customer_type == "volume" else command.item.unit_price
+        total_amount += quantity * price
 
-        return render(request, 'addfacture.html', {'customers': customers,'commands': commands,'products': products,'variants': variants,})
+        # Add the processed command to the list
+        processed_commands.append(command)
+
+    return total_amount, processed_commands
+    
+    
+    
+    
+def add_facture(request):
+    if request.method == "POST":
+        try:
+            # Extract data from the POST request
+            data = request.POST.copy()
+            customer_id = data.get("customer_id")
+            selected_command_ids = data.getlist("command")
+
+            # Validate required fields
+            if not customer_id or not selected_command_ids:
+                return JsonResponse({"success": False, "message": "Customer and commands are required."})
+
+            # Get the customer instance
+            customer_instance = get_object_or_404(customer, pk=customer_id)
+
+            # Fetch the selected commands
+            selected_commands = Command.objects.filter(pk__in=selected_command_ids)
+
+            # Create a new facture
+            with transaction.atomic():
+                new_facture = facture.objects.create(
+                    datef=data.get("datef"),
+                    addressf=data.get("addressf"),
+                    payment_method=data.get("Payment_Method"),
+                    tax=data.get("tax", 0),
+                    discount=data.get("discount", 0),
+                    ttc=data.get("TTC", 0),
+                    customer=customer_instance,
+                )
+
+                # Associate commands with the facture
+                new_facture.commands.set(selected_commands)
+
+            return redirect("get_all_factures")
+
+        except Exception as e:
+            print("Error creating facture:", e)
+            return JsonResponse({"success": False, "message": "An unexpected error occurred."})
+
+    elif request.method == "GET" and "customer_id" in request.GET:
+        # Fetch commands dynamically for a specific customer
+        customer_id = request.GET.get("customer_id")
+        try:
+            commands = Command.objects.filter(customer_id=customer_id)
+            commands_data = [{"id": cmd.pk, "label": f"Command {cmd.pk}"} for cmd in commands]
+            return JsonResponse({"success": True, "commands": commands_data})
+        except Exception as e:
+            print("Error fetching commands:", e)
+            return JsonResponse({"success": False, "message": str(e)})
+
+    else:
+        # Render the form for adding a facture
+        customers = customer.objects.all()
+        return render(request, "add_facture.html", {
+            "form": FactureForm(),
+            "customers": customers,
+        })
+
+
+
 
 
 def updatelead(request, id):
@@ -858,11 +1075,12 @@ def add_itemvariant(request):
         item_id = request.POST.get('item_id')
         item_instance = get_object_or_404(item, pk=item_id)
         variant_name= request.POST.get('variant_name')
-        variant_value = request.POST.get('variant_value')
+        variant_values_raw = request.POST.get('variant_values')
+        variant_values = [value.strip() for value in variant_values_raw.split(',') if value.strip()]
         itemvariant.objects.create(
             item =item_instance,
             variant_name=variant_name,
-            variant_value=variant_value,
+            variant_values=variant_values,
         )
         return redirect('all_items')
     
@@ -1077,65 +1295,101 @@ def search_delivery(request):
         return render(request, 'search_delivery.html', {})
 
 
+
+
+
+
+from django.http import JsonResponse
+
 def add_command(request):
-    if request.method == 'POST':
-        customer_id = request.POST.get('customer_id')  
-        delivery_id = request.POST.get('delivery_id')
-        print(f"Customer ID: {customer_id}, Delivery ID: {delivery_id}") 
-
-        order_date = request.POST.get('order_date')
-        total_amount = request.POST.get('total_amount')
-        statu = request.POST.get('statu')
-        shipping_address = request.POST.get('shipping_address')
-
+    if request.method == "POST":
         try:
-            customer_instance = customer.objects.get(customer=customer_id)  
-            delivery_instance = Delivery.objects.get(delivery_id=delivery_id)
+            data = request.POST.copy()
+            variant_combinations = json.loads(data.get("variant_combinations", "[]"))
 
-            command = Command(
-                customer=customer_instance,  
-                order_date=order_date,
-                total_amount=total_amount,
-                statu=statu,
-                shipping_address=shipping_address,
-                delivery_id=delivery_instance.delivery_id
+            # Create Command
+            command = Command.objects.create(
+                customer_id=data["customer_id"],
+                delivery_id=data["delivery_id"],
+                order_date=data["order_date"],
+                shipping_address=data["shipping_address"],
+                total_amount=0
             )
+
+            # Add Command Lines
+            total_amount = 0
+            for combination in variant_combinations:
+                product = item.objects.get(pk=combination["product"])
+                quantity = combination["quantity"]
+                variants = combination["variant_combination"]
+
+                # Validate stock availability
+                stock = Stock.objects.filter(item=product, variant_combination=variants).first()
+                if not stock or stock.quantity_available < quantity:
+                    return JsonResponse({"success": False, "message": "Insufficient stock for product."})
+
+                # Deduct stock and save CommandLine
+                stock.quantity_available -= quantity
+                stock.save()
+
+                CommandLine.objects.create(
+                    command=command,
+                    product=product,
+                    quantity=quantity,
+                    variant_combination=variants
+                )
+
+                total_amount += product.unit_price * quantity
+
+            # Update total amount
+            command.total_amount = total_amount
             command.save()
-            return redirect('get_command')
 
-        except customer.DoesNotExist:
-            print("Customer does not exist")
-            return render(request, 'add_command.html', {
-                'error_message': "Customer does not exist", 
-                'customers': customer.objects.all(),
-                'deliveries': Delivery.objects.all()
-            })
-            
-        except Delivery.DoesNotExist:
-            print("Delivery person does not exist")
-            return render(request, 'add_command.html', {
-                'error_message': "Delivery person does not exist", 
-                'customers': customer.objects.all(),
-                'deliveries': Delivery.objects.all()
-            })
+            return redirect("get_command")
 
-        except IntegrityError as e:
-            print(f"IntegrityError: {e}")
-            return render(request, 'add_command.html', {
-                'error_message': "Failed to add command", 
-                'customers': customer.objects.all(),
-                'deliveries': Delivery.objects.all()
-            })
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
 
-    else:
-        customers = customer.objects.all()  
-        deliveries = Delivery.objects.all()
-    return render(request, 'add_command.html', {'customers': customers , 'deliveries': deliveries })
+    # For GET request
+    return render(request, "add_command.html", {
+        "customers": customer.objects.all(),
+        "deliveries": Delivery.objects.all(),
+        "items": item.objects.all(),
+        "variant_data": json.dumps(_get_variant_data()),
+    })
+
+
+
+def _get_variant_data():
+    """
+    Fetch variant data dynamically from the database to render in the frontend.
+    """
+    items_queryset = item.objects.prefetch_related("itemvariant_set")
+    variant_data = {
+        item_obj.pk: {
+            variant.variant_name: variant.variant_values
+            for variant in item_obj.itemvariant_set.all()
+        }
+        for item_obj in items_queryset
+    }
+    return variant_data
+
+
+
+
+
+
+
+
+
+
 
 
 def get_command(request):
-    commands = Command.objects.all()
-    return render(request, 'command_detail.html', {'commands': commands})
+    commands = Command.objects.prefetch_related("lines").all()
+    return render(request, "command_detail.html", {"commands": commands})
+
+
 
 
 def get_delivery(request):
@@ -1144,48 +1398,126 @@ def get_delivery(request):
 
 
 def update_command(request, pk):
-    command = get_object_or_404(Command, pk=pk)  
-    if request.method == 'POST':
-        customer_id = request.POST.get('customer_id')
-        order_date = request.POST.get('order_date')
-        total_amount = request.POST.get('total_amount')
-        statu = request.POST.get('statu')
-        shipping_address = request.POST.get('shipping_address')
-        delivery_id = request.POST.get('delivery_id')
+    command = get_object_or_404(Command, pk=pk)
+    customers = customer.objects.all()
+    deliveries = Delivery.objects.all()
+    products_queryset = item.objects.prefetch_related("itemvariant_set")
 
+    # Prepare variant data for frontend
+    variant_data = {
+        str(product.pk): {
+            variant.variant_name: variant.variant_values
+            for variant in product.itemvariant_set.all()
+        }
+        for product in products_queryset
+    }
+
+    if request.method == "POST":
         try:
-            command.customer = customer.objects.get(customer=customer_id) 
-            command.order_date = order_date
-            command.total_amount = total_amount
-            command.statu = statu
-            command.shipping_address = shipping_address
-            command.delivery_id = Delivery.objects.get(delivery_id=delivery_id).delivery_id 
+            with transaction.atomic():
+                # Debugging the incoming POST data
+                print("===== POST DATA =====")
+                print(request.POST)
+                print("=====================")
 
-            command.save()  
-            return redirect('get_command')
+                # Extracting form data
+                customer_id = request.POST.get("customer_id")
+                delivery_id = request.POST.get("delivery_id")
+                order_date = request.POST.get("order_date")
+                shipping_address = request.POST.get("shipping_address")
+                variant_combinations = json.loads(request.POST.get("variant_combinations", "[]"))
 
-        except customer.DoesNotExist:
-            print("Customer does not exist")
-            return render(request, 'update_command.html', {
-                'command': command,
-                'error_message': "Customer does not exist"
-            })
+                # Validate mandatory fields
+                if not customer_id or not delivery_id or not order_date:
+                    return JsonResponse(
+                        {"success": False, "message": "Missing required fields."},
+                        status=400,
+                    )
 
-        except Delivery.DoesNotExist:
-            print("Delivery person does not exist")
-            return render(request, 'update_command.html', {
-                'command': command,
-                'error_message': "Delivery person does not exist"
-            })
+                # Update Command
+                command.customer = get_object_or_404(customer, pk=customer_id)
+                command.delivery = get_object_or_404(Delivery, pk=delivery_id)
+                command.order_date = order_date
+                command.shipping_address = shipping_address
+                command.total_amount = 0
+                command.save()
 
-        except IntegrityError as e:
-            print(f"IntegrityError: {e}")
-            return render(request, 'update_command.html', {
-                'command': command,
-                'error_message': "Failed to update command"
-            })
+                # Delete existing command lines
+                command.lines.all().delete()
 
-    return render(request, 'update_command.html', { 'command': command, 'customers': customer.objects.all(),'deliveries': Delivery.objects.all()})
+                total_quantity = 0
+
+                # Process each variant combination
+                for combination in variant_combinations:
+                    product_id = combination.get("product")
+                    quantity = combination.get("quantity")
+                    variant_combination = combination.get("variant_combination", {})
+
+                    if not product_id or not quantity:
+                        continue
+
+                    product = get_object_or_404(item, pk=product_id)
+
+                    # Check stock
+                    stock = Stock.objects.filter(
+                        item=product, variant_combination=variant_combination
+                    ).first()
+
+                    if not stock or stock.quantity_available < quantity:
+                        raise ValueError(
+                            f"Insufficient stock for {product.product_name} with variants {variant_combination}."
+                        )
+
+                    stock.quantity_available -= quantity
+                    stock.save()
+
+                    # Create CommandLine
+                    CommandLine.objects.create(
+                        command=command,
+                        product=product,
+                        quantity=quantity,
+                        variant_combination=variant_combination,
+                    )
+
+                    command.total_amount += product.unit_price * quantity
+                    total_quantity += quantity
+
+                command.save()
+
+                return redirect("get_command")
+        except Exception as e:
+            print("Error:", str(e))
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+    return render(
+        request,
+        "update_command.html",
+        {
+            "command": command,
+            "customers": customers,
+            "deliveries": deliveries,
+            "products": products_queryset,
+            "variant_data": json.dumps(variant_data),
+        },
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def search_command(request):

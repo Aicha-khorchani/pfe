@@ -4,8 +4,8 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from .views import  add_itemvariant, add_item, allcustomers, customer_delete, home, add_customer, search_customers, update_password
 from .views import update_customer, update_item, variant_delete, update_item_variant,updatesupplier,delete_supplier,admin,notification_view
-from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners
-from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list,search_note
+from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners,get_variants
+from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list,search_note , get_commands
 from .views import delete_retour,update_retour,add_retour,all_retour, doc, search_return ,add_bonreception,update_bonreception,all_bonreception,delete_bonreception
 from .views import invoice,returne,reception,update_facture ,delete_facture,get_all_factures,search_facture,add_facture,get_stock_levels,admin_user_list
 from .views import user_list,user_create,user_update,user_delete,admin_user_create,admin_user_delete,admin_user_create,admin_user_update,admin_user_delete
@@ -19,9 +19,8 @@ urlpatterns = [
     path('livreur',livreur, name='livreur'),
     path('add_note',add_note, name='add_note'),
     path('all_notes/', all_notes, name='all_notes'),
-    
+    path('get_variants/<int:item>/', get_variants, name='get_variants'),
     path('notification/', notification_view, name='notification_view'),
-
     path('edit_note/<int:note_id>/', edit_note, name='edit_note'),
     path('delete_note/<int:note_id>/', delete_note, name='delete_note'),
     path('search_note/', search_note, name='search_note'),
@@ -49,7 +48,9 @@ urlpatterns = [
     path('home', home, name='home'),
     path('stock', stock, name='stock'),
     path('partners', partners, name='partners'),
-    path('addfacture.html', add_facture, name='add_facture'),    
+    path('add_facture/', add_facture, name='add_facture'),    
+    path('get_commands/<int:facture_id>/', get_commands, name='get_commands'),
+
     path('update_facture/<int:facture_id>/', update_facture, name='update_facture'),
     path('delete_facture', delete_facture, name='delete_facture'),
     path('get_all_factures', get_all_factures, name='get_all_factures'),    

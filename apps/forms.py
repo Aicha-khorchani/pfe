@@ -1,9 +1,11 @@
 from django import forms
-from .models import Command, Delivery, facture, retour, customer, item, itemvariant, lead, supplier, bonreception ,Livreurs
+from .models import Command, CommandLine, Delivery,BonReceptionLine, facture, retour, customer, item, itemvariant, lead, supplier, bonreception ,Livreurs
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import customuser, AdminUser 
+from django.forms.models import inlineformset_factory
+
 
 # Base styled form
 class StyledForm(forms.ModelForm):
@@ -183,15 +185,36 @@ class CustomUserChangeForm(StyledForm, UserChangeForm):
         fields = ('username', 'email', 'full_name', 'is_active', 'is_staff')
 
 
-class BonReceptionForm(StyledForm):
-    supplier_id = forms.ModelChoiceField(queryset=supplier.objects.all(), required=True, label="Select supplier")
-    item = forms.ModelChoiceField(queryset=item.objects.all(), required=True, label="Select Product")
-    variant = forms.ModelChoiceField(queryset=itemvariant.objects.all(), required=True, label="Select Variant")
-
+class BonReceptionForm(StyledForm): 
+    supplier = forms.ModelChoiceField(queryset=supplier.objects.all(), required=True, label="Select Supplier")
     class Meta:
         model = bonreception
-        fields = ('delivery_address', 'delivery_date', 'supplier_id', 'item', 'variant', 'quantity_delivered', 'transportation_type', 'unit_of_measure')
+        fields = ('delivery_address', 'delivery_date', 'supplier')
 
+class BonReceptionLineForm(forms.ModelForm):
+    class Meta:
+        model = BonReceptionLine
+        fields = ['item', 'variant_combination', 'quantity']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['item'].widget.attrs.update({'class': 'form-select item-select'})
+        self.fields['quantity'].widget.attrs.update({'class': 'form-control', 'min': '1'})
+        self.fields['variant_combination'].widget = forms.HiddenInput()  # Hidden because it's handled dynamically
+    def clean_item(self):
+        item = self.cleaned_data.get('item')
+        if not item:
+            raise forms.ValidationError("This field is required.")
+        return item        
+
+
+BonReceptionLineFormSet = inlineformset_factory(
+    bonreception,
+    BonReceptionLine,
+    form=BonReceptionLineForm,
+    extra=1,
+    can_delete=True
+)       
 
 
 class CustomUserCreationForm(StyledForm, UserCreationForm):
@@ -202,16 +225,80 @@ class CustomUserCreationForm(StyledForm, UserCreationForm):
         model = User
         fields = ('username', 'full_name', 'email', 'password1', 'password2')
 
+class CommandForm(forms.ModelForm):
+    class Meta:
+        model = Command
+        fields = ["customer", "delivery", "order_date", "shipping_address"]
+        
+class CommandLineForm(forms.ModelForm):
+    class Meta:
+        model = CommandLine
+        fields = ['product', 'quantity', 'variant_combination']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'variant_combination': forms.HiddenInput(),  # Hidden field for JSON data
+        }
+        
+CommandLineFormSet = forms.modelformset_factory(
+    CommandLine,
+    form=CommandLineForm,
+    extra=1,  # Allow adding at least one row
+    can_delete=True,  # Enable deleting rows
+)
+
+
+
 
 class FactureForm(StyledForm):
-    customer = forms.ModelChoiceField(queryset=customer.objects.all(), required=True, label="Select customer")
-    command = forms.ModelChoiceField(queryset=Command.objects.all(), required=True, label="Select command")
-    product = forms.ModelChoiceField(queryset=item.objects.all(), required=True, label="Select Product")
-    variant = forms.ModelChoiceField(queryset=itemvariant.objects.all(), required=True, label="Select Variant")
+    customer = forms.ModelChoiceField(
+        queryset=customer.objects.all(),
+        required=True,
+        label="Select Customer"
+    )
+    commands = forms.ModelMultipleChoiceField(
+        queryset=Command.objects.all(),
+        required=True,
+        label="Select Commands",
+        widget=forms.SelectMultiple(attrs={'id': 'commands'})
+    )
+    datef = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=True,
+        label="Facture Date"
+    )
+    addressf = forms.CharField(
+        max_length=100,
+        required=True,
+        label="Billing Address",
+        widget=forms.TextInput(attrs={'placeholder': 'Enter address'})
+    )
+    tax = forms.IntegerField(
+        required=False,
+        label="Tax (%)",
+        widget=forms.NumberInput(attrs={'placeholder': 'Enter tax percentage'})
+    )
+    discount = forms.IntegerField(
+        required=False,
+        label="Discount (%)",
+        widget=forms.NumberInput(attrs={'placeholder': 'Enter discount percentage'})
+    )
+    payment_method = forms.CharField(
+        max_length=55,
+        required=True,
+        label="Payment Method",
+        widget=forms.TextInput(attrs={'placeholder': 'Enter payment method'})
+    )
+
     class Meta:
         model = facture
-        fields = ['datef', 'customer', 'command', 'addressf', 'product', 'tax', 'discount', 'payment_method', 'variant', 'qte_facture', 'ttc', 'price']
+        fields = [
+            'datef', 'customer', 'commands', 'addressf',
+            'tax', 'discount', 'payment_method'
+        ]
         exclude = ['facture_id']
+
+
 
 
 class leadForm(StyledForm):
@@ -230,7 +317,7 @@ class UpdateitemForm(StyledForm):
 class UpdateItemVariant(StyledForm):
     class Meta:
         model = itemvariant
-        fields = ['item', 'variant_name', 'variant_value']
+        fields = ['item', 'variant_name', 'variant_values']
         exclude = ['variant_id']
 
 
@@ -307,7 +394,7 @@ class itemForm(StyledForm):
 class itemvariantForm(StyledForm):
     class Meta:
         model = itemvariant
-        fields = ['item', 'variant_name', 'variant_value']
+        fields = ['item', 'variant_name', 'variant_values']
         exclude = ['variant']
         
 class customerDeleteForm(forms.Form):
@@ -339,16 +426,13 @@ class DeleteLeadForm(forms.Form):
         }
     
 class RetourForm(StyledForm):
-    client = forms.ModelChoiceField(queryset=customer.objects.all(), required=True, label="Select Customer")
     supplier = forms.ModelChoiceField(queryset=supplier.objects.all(), required=True, label="Select Supplier")
-    produit = forms.ModelChoiceField(queryset=item.objects.all(), required=True, label="Select Product")
-    variant = forms.ModelChoiceField(queryset=itemvariant.objects.all(), required=True, label="Select Variant")
     livreur = forms.ModelChoiceField(queryset=Livreurs.objects.all(), required=True, label="Select Delivery Person")
-    numero_c = forms.ModelChoiceField(queryset=Command.objects.all(), required=True, label="Select Command Number")
+    facture = forms.ModelChoiceField(queryset=Livreurs.objects.all(), required=True, label="Select Delivery Person")
 
     class Meta:
         model = retour
-        fields = ['supplier','date_retour', 'client', 'produit', 'quantite_retournee', 'raison_retour', 'livreur', 'informations_supp', 'numero_c', 'statut_retour', 'variant']
+        fields = ['supplier','date_retour', 'raison_retour', 'livreur', 'informations_supp','facture' ]
     
     
     

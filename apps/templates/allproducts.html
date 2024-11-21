@@ -117,7 +117,7 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th>Variant id</th>
-                                            <th>Item id</th>
+                                            <th>product name</th>
                                             <th>Variant name</th>
                                             <th>Variant value</th>
                                             <th>Actions</th>
@@ -129,8 +129,15 @@
                                             <td>{{ itemvariant.variant_id }}</td>
                                             <td>{{ itemvariant.item.product_name }}</td>
                                             <td>{{ itemvariant.variant_name }}</td>
-                                            <td>{{ itemvariant.variant_value }}</td>
                                             <td>
+                                                {% if itemvariant.variant_values %}
+                                                    {{ itemvariant.variant_values|join:", " }} 
+                                                {% else %}
+                                                    No values
+                                                {% endif %}
+                                            </td>
+                                        <td>
+
                                             <a href="{% url 'update_item_variant' itemvariant.variant_id %}">
                                                   <button class="btn btn-sm btn-custom">Edit</button>
                                                 </a>

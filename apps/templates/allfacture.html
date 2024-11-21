@@ -70,12 +70,8 @@
                         <th>Discount</th>
                         <th>Payment Method</th>
                         <th>TTC</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Variant</th>
+                        <th>Commands</th>
                         <th>Customer</th>
-                        <th>order</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -89,12 +85,22 @@
                         <td>{{ facture.discount }}</td>
                         <td>{{ facture.payment_method }}</td>
                         <td>{{ facture.ttc }}</td>
-                        <td>{{ facture.product.product_name }}</td>
-                        <td>{{ facture.qte_facture }}</td>
-                        <td>{{ facture.price }}</td>
-                        <td>{{ facture.variant.variant_name }}</td>
+                        <td>
+                            <ul>
+                                {% for command in facture.commands.all %}
+                                <li>
+                                    Order ID: {{ command.pk }}<br>
+                                    {% for line in command.lines.all %}
+                                    Product: {{ line.product.product_name|default:"No product name available" }}<br>
+                                    Variant Combination:
+                                    <pre style="display:inline;">{{ line.variant_combination|default:"No variant" }}</pre><br>
+                                    Quantity: {{ line.quantity|default:"-" }}<br>
+                                    {% endfor %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
                         <td>{{ facture.customer.customer_name }}</td>
-                        <td>{{ facture.command.Command_id }}</td>
                         <td>
                             <a href="{% url 'update_facture' facture.facture_id %}">
                                 <button class="btn btn-sm btn-custom">Edit</button>
@@ -103,14 +109,12 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="13" class="text-center">No invoice available with that data.</td>
+                        <td colspan="10" class="text-center">No invoice available with that data.</td>
                     </tr>
                     {% endfor %}
-                </tbody>
+                </tbody>   
             </table>
         </div>
-
-
 
         <div class="input-group mb-3 d-flex justify-content-center">
             <a href="{% url 'delete_facture' %}" class="btn btn-sm btn-danger">
@@ -118,6 +122,7 @@
             </a>
         </div>
     </div>
+</div>
 
     <footer class="mt-5 bg-dark text-white py-4">
         <div class="container">

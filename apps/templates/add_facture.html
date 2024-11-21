@@ -35,7 +35,7 @@
     </nav>
 
     <div class="container min-vh-100 py-5">
-        <form method="POST">
+        <form method="POST" id="FactureForm" action="/apps/add_facture/">
             {% csrf_token %}
             <div class="row g-4">
                 <div class="row border rounded-5 p-4 bg-white shadow">
@@ -50,9 +50,10 @@
                                 <input type="text" id="addressf" name="addressf" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label for="tax" class="form-label">Tax</label>
-                                <input type="text" id="tax" name="tax" class="form-control" required>
+                                <label for="Payment_Method" class="form-label">Payment Method</label>
+                                <input type="text" id="Payment_Method" name="Payment_Method" class="form-control" required>
                             </div>
+                           
 
                           <label for="customer_id" class="form-label">Select Customer:</label> 
                           <select name="customer_id" id="customer_id"class="form-select" required>
@@ -61,54 +62,37 @@
                                 <option value="{{ customer.customer }}">{{ customer.customer_name }}</option>  
                                 {% endfor %}
                           </select>
-                            <label for="item" class="form-label">Select Item:</label>
-                            <select name="item" id="item" class="form-select" required>
-                                <option value="" disabled selected>Choose an item</option>
-                                {% for product in products %}
-                                    <option value="{{ product.item }}">{{ product.product_name }}</option>
-                                {% endfor %}
-                            </select>  
+                    
+                      
 
-                        <label for="variant" class="form-label">Select Variant:</label>
-                        <select name="variant" id="variant" class="form-select" required>
-                            <option value="" disabled selected>Choose a variant</option>
-                            {% for variant in variants %}
-                                <option value="{{ variant.variant_id }}">{{ variant.variant_value }}</option>
-                            {% endfor %}
-                        </select>
                         <label for="command_id" class="form-label">Select Command:</label>
-                        <select name="command" id="command" class="form-select" required>
-                            <option value="" disabled>Select a command</option>
+                        <select id="command" name="command" class="form-select" multiple required>
                             {% for command in commands %}
-                                <option value="{{ command.Command_id }}">{{ command.Command_id }}</option>
-                            {% endfor %}
+                            <option value="{{ command.Command_id }}">{{ command.Command_id }}</option>
+                        {% endfor %}
                         </select>
+
                 </br>  
                         </div>
     
                 <!-- Right Section -->
-                <div class="col-md-6">
+                           <div class="col-md-6">
                             <h5 class="mb-4">Enter Invoice Note</h5>
-                            <div class="mb-3">
-                                <label for="Payment_Method" class="form-label">Payment Method</label>
-                                <input type="text" id="Payment_Method" name="Payment_Method" class="form-control" required>
-                            </div>
+                        
                             <div class="mb-3">
                                 <label for="discount" class="form-label">Discount</label>
                                 <input type="text" id="discount" name="discount" class="form-control" required>
                             </div>
                             <div class="mb-3">
-                                <label for="qte_facture" class="form-label">Quantity to Invoice</label>
-                                <input type="text" id="qte_facture" name="qte_facture" class="form-control" required>
+                                <label for="tax" class="form-label">Tax</label>
+                                <input type="text" id="tax" name="tax" class="form-control" required>
                             </div>
                             <div class="mb-3">
                                 <label for="TTC" class="form-label">Total with All Taxes Included</label>
                                 <input type="text" id="TTC" name="TTC" class="form-control" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="price" class="form-label">Price</label>
-                                <input type="text" id="price" name="price" class="form-control" required>
-                            </div>
+                     
+            
                             {% if error %}
                                 <div class="alert alert-danger">{{ error }}</div>
                             {% endif %}
@@ -166,5 +150,46 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const customerField = document.getElementById("customer_id");
+            const commandField = document.getElementById("command");
+    
+            // Listen for changes in the customer dropdown
+            customerField.addEventListener("change", function () {
+                const customerId = this.value;
+    
+                // Clear the command dropdown
+                commandField.innerHTML = '<option value="" disabled selected>Select a command</option>';
+    
+                if (customerId) {
+                    // Fetch commands for the selected customer
+                    fetch(`/apps/add_facture/?customer_id=${customerId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Populate the command dropdown with fetched data
+                                data.commands.forEach(command => {
+                                    const option = document.createElement("option");
+                                    option.value = command.id;
+                                    option.textContent = command.label;
+                                    commandField.appendChild(option);
+                                });
+                            } else {
+                                alert("Failed to fetch commands. Please try again.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error fetching commands:", error);
+                            alert("Failed to fetch commands. Please try again.");
+                        });
+                }
+            });
+        });
+    </script>
+    
+    
+    
+    
 </body>
 </html>

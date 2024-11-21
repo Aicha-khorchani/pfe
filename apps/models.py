@@ -135,10 +135,9 @@ class itemvariant(models.Model):
     variant_id = models.AutoField(primary_key=True)
     item = models.ForeignKey(item, on_delete=models.CASCADE)
     variant_name = models.CharField(max_length=50, blank=True, null=True)
-    variant_value = models.CharField(max_length=50, blank=True, null=True)
-
+    variant_values = models.JSONField(default=list)
     def __str__(self):
-        return f"Variant {self.variant_name}: {self.variant_value} - {self.item}"
+        return f"Variant {self.variant_name}: {self.variant_values} - {self.item}"
     class Meta:
         db_table = 'apps_itemvariant'
         
@@ -158,30 +157,22 @@ class supplier(models.Model):
     feedback = models.TextField( blank=True, null=True)
 
     def __str__(self):
-        return (f"supplier {self.supplier_name or 'Unknown'}: "
-                f"ID {self.supplier} - "
-                f"Contact: {self.contact_info }, "
-                f"Address: {self.address }, "
-                f"Categories: {self.categories_supplied }, "
-                f"Payment Terms: {self.payment_terms }, "
-                f"Product Quality: {self.product_quality }, "
-                f"Cost: {self.cost}, "
-                f"Interaction Quality: {self.interaction_quality}, "
-                f"Feedback: {self.feedback }")
+        return (f"supplier {self.supplier_name or 'Unknown'}")
     class Meta:
         db_table = 'apps_supplier'     
       
         
-     
+
     
 class Stock(models.Model):
-    item = models.ForeignKey(item, on_delete=models.CASCADE)  
-    item_variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE)  
-    quantity_available = models.IntegerField(default=0)
-    
+    item = models.ForeignKey(item, on_delete=models.CASCADE)
+    item_variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE)
+    variant_combination = models.JSONField(default=dict)  
+    quantity_available = models.IntegerField(default=0)  
+
     def __str__(self):
-        return f'{self.item.product_name} - {self.item_variant.variant_name}: {self.quantity_available} available'
-    
+        return f"{self.item.product_name} - {self.item_variant.variant_name}: {self.quantity_available}"
+
     class Meta:
         db_table = 'apps_stock'
     
@@ -205,7 +196,7 @@ class leaddata(models.Model):
     lead = models.ForeignKey('lead', on_delete=models.CASCADE)
     owner = models.CharField(max_length=55, blank=True, null=True)
     contract_file = models.FileField(upload_to='contracts/', blank=True, null=True)
-    nextdate = models.DateField()
+    nextdate = models.DateField(blank=True, null=True)
     revenue = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     size = models.IntegerField(blank=True, null=True)
     number = models.IntegerField(blank=True, null=True)
@@ -234,20 +225,24 @@ class bonreception(models.Model):
     delivery = models.AutoField(primary_key=True)
     delivery_date = models.DateField(blank=True, null=True)
     delivery_address = models.CharField(max_length=100, blank=True, null=True)
-    supplier_id = models.ForeignKey(supplier, on_delete=models.CASCADE)
-    item = models.ForeignKey(item, on_delete=models.CASCADE)
-    quantity_delivered = models.IntegerField(blank=True, null=True)
-    unit_of_measure = models.CharField(max_length=50, blank=True, null=True)
-    transportation_type = models.CharField(max_length=100, blank=True, null=True)
-    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE)
+    supplier = models.ForeignKey(supplier, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'apps_bonreception'
     def __str__(self):
-        return f"bonreception {self.delivery} for {self.supplier}"
-    class Meta:
-        db_table = 'apps_bonreception'
+        return f"bonreception {self.delivery} for {self.delivery_address}"
 
+class BonReceptionLine(models.Model):
+    bon_reception = models.ForeignKey(bonreception, on_delete=models.CASCADE, related_name='lines')
+    item = models.ForeignKey(item, on_delete=models.CASCADE)  
+    variant_combination = models.JSONField(default=dict)  
+    quantity = models.IntegerField()  
+
+    class Meta:
+        db_table = 'apps_bonreception_line'
+
+    def __str__(self):
+        return f"{self.item.product_name} - {self.variant_combination} pcs"
     
     
 class Delivery(models.Model):
@@ -264,24 +259,29 @@ class Delivery(models.Model):
    
 
 class Command(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('Shipping', 'Shipping'),
-        ('delivered', 'Delivered'),
-        ('canceled', 'Canceled'),
-    ]
-    Command_id = models.AutoField(primary_key=True)
     customer = models.ForeignKey(customer, on_delete=models.CASCADE)
+    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
     order_date = models.DateField(blank=True, null=True)
-    total_amount = models.IntegerField(blank=True, null=True)
-    statu = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    shipping_address = models.CharField(max_length=255, blank=True, null=True)
-    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE, related_name='commands')  
+    shipping_address = models.TextField(blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
-        return f"Order {self.Command_id} for {self.customer} - Statu: {self.statu} - Delivery Person: {self.delivery.delivery_person} ({self.delivery.delivery_person_number})"
+        return f"Command {self.id} for {self.customer}"
     class Meta:
-        db_table = 'apps_Command'  
+        db_table = 'apps_Command'
+
+
+class CommandLine(models.Model):
+    command = models.ForeignKey(Command, on_delete=models.CASCADE, related_name="lines")
+    product = models.ForeignKey(item, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    variant_combination = models.JSONField(default=dict)
+
+    def __str__(self):
+        return f"Line {self.id} - {self.product.product_name} (x{self.quantity})"
+    
+    class Meta:
+        db_table = 'apps_CommandLine'
 
 
 
@@ -290,40 +290,33 @@ class facture(models.Model):
     facture_id = models.AutoField(primary_key=True)
     datef = models.DateField(blank=True, null=True)
     addressf = models.CharField(max_length=100, blank=True, null=True)
-    tax = models.IntegerField(blank=True, null=True)
-    discount = models.IntegerField(blank=True, null=True)
+    tax = models.IntegerField(blank=True, null=True)  
+    discount = models.IntegerField(blank=True, null=True)  
+    calculated_total = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    ttc = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)  
     payment_method = models.CharField(max_length=55, blank=True, null=True)
-    qte_facture = models.IntegerField(blank=True, null=True)
-    ttc = models.IntegerField(blank=True, null=True)
-    product = models.ForeignKey(item, on_delete=models.CASCADE)
-    price = models.IntegerField(blank=True, null=True)                                                         
-    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE) 
     customer = models.ForeignKey(customer, on_delete=models.CASCADE)
-    command = models.ForeignKey(Command, on_delete=models.CASCADE, blank=True, null=True)
-    
+    commands = models.ManyToManyField(Command, related_name='factures')
+
     def __str__(self):
-        return f"facture {self.facture} on {self.datef}"
+        return f"Facture {self.facture_id} for {self.customer}"
+
     class Meta:
-        db_table = 'apps_facture' 
+        db_table = 'apps_facture'
 
 
 
 class retour(models.Model):
     retour = models.AutoField(primary_key=True)
-    supplier = models.ForeignKey(supplier, on_delete=models.CASCADE)
-    client = models.ForeignKey(customer, on_delete=models.CASCADE)
-    produit = models.ForeignKey(item, on_delete=models.CASCADE)
-    quantite_retournee = models.PositiveIntegerField()
-    variant = models.ForeignKey(itemvariant, on_delete=models.CASCADE) 
+    supplier = models.ForeignKey(supplier, on_delete=models.CASCADE, blank=True, null=True)
     raison_retour = models.TextField(blank=True, null=True)
     date_retour = models.DateField(blank=True, null=True)
     livreur = models.ForeignKey(Livreurs, on_delete=models.CASCADE, default=16)
     informations_supp = models.TextField(blank=True, null=True)
-    numero_c = models.ForeignKey(Command, on_delete=models.CASCADE)
-    statut_retour = models.CharField(max_length=50, default='en attente')
+    facture = models.ForeignKey(facture, on_delete=models.CASCADE) 
   
     def __str__(self):
-        return f"retour de {self.client} pour {self.produit}"
+        return f"retour de {self.raison_retour} pour {self.informations_supp}"
     class Meta:
         db_table = 'apps_retour' 
         
@@ -335,7 +328,7 @@ class Note(models.Model):
     note =  models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Note for {self.customer.customer_name} - Command {self.command.id}"
+        return f"Note for {self.customer.customer_name} -  {self.note}"
 
     class Meta: 
         db_table = 'apps_note'

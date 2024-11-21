@@ -56,12 +56,12 @@
                         <h5 class="mb-4">enter the reception note modification</h5>
              
                     <div class="mb-3">
-                        <label for="datef" class="form-label">Reception address</label>
+                        <label for="delivery_address" class="form-label">Reception address</label>
                     <input type="text"  id="delivery_address" name="delivery_address" class="form-control form-control-lg bg-light fs-6"  required>
             </div>
            
                     <div class="mb-3">
-                        <label for="datef" class="form-label">reception date</label>
+                        <label for="delivery_date" class="form-label">reception date</label>
                     <input type="date"  id="delivery_date" name="delivery_date" class="form-control form-control-lg bg-light fs-6" >
                 </div>
                 <label for="supplier_id" class="form-label">Select Supplier:</label>
@@ -97,17 +97,10 @@
                  <h5 class="mb-4">arrival data</h5>
             
                             <div class="mb-3">
-                                <label for="datef" class="form-label">qantity delivred</label>
+                                <label for="quantity_delivered" class="form-label">qantity delivred</label>
                         <input type="text" id="quantity_delivered" name="quantity_delivered" class="form-control form-control-lg bg-light fs-6" required>
                     </div>
-                            <div class="mb-3">
-                                <label for="datef" class="form-label">Unit of Measure</label>
-                        <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control form-control-lg bg-light fs-6" required>
-                    </div>
-                            <div class="mb-3">
-                                <label for="datef" class="form-label">transportation type</label>
-                        <input type="text" id="transportation_type" name="transportation_type" class="form-control form-control-lg bg-light fs-6" required>
-                    </div>
+        
                
                     <div class="d-flex flex-column justify-content-center mt-3">
                         <button class="btn btn-lg btn-primary w-100" type="submit">update the reception note</button>
@@ -118,7 +111,7 @@
         </div>
         <div class="d-flex flex-column justify-content-center mt-3">
             <a href="{% url 'all_bonreception' %}"  class="btn btn-outline-primary w-100">show receptions notes  </a>
-                </div>
+        </div>
 
           </div>
        </div> 

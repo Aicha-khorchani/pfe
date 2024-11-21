@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <title>COM ARKEYEZ | delivery note</title>
+    <title>COM ARKEYEZ | Delivery Note</title>
 </head>
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
         <div class="container-fluid">
             <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
@@ -33,100 +33,132 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
-                </ul>
-                <form class="d-flex" method="GET" action="{% url 'search_bonreception' %}">
-                    {% csrf_token %}
-                    <input type="search"  name="searched" id="searched" class="form-control me-2"  placeholder="Search by reception note...">
-                    <button class="search-button btn btn-primary" type="submit" >Search</button>
-                </form>
-                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
+            </li>
+        </ul>
             </div>
         </div>
     </nav>
-                
-    <!----------------------- Main Container -------------------------->
-   <!-- Main Container -->
-   <div class="container min-vh-100 py-5">
-    <form method="POST">
-        {% csrf_token %}
-        <div class="row g-4">
-            <!-- Left Section -->
-            <div class="row border rounded-5 p-4 bg-white shadow">
-                <div class="col-md-6 d-flex flex-column" style="background-color: #103cbe; color: black;">
-                        <h5 class="mb-4">enter reception note </h5>
-             
-                    <div class="mb-3">
-                        <label for="datef" class="form-label">Reception address</label>
-                    <input type="text"  id="delivery_address" name="delivery_address" class="form-control form-control-lg bg-light fs-6"  required>
-            </div>
-           
-                    <div class="mb-3">
-                        <label for="datef" class="form-label">reception date</label>
-                    <input type="date"  id="delivery_date" name="delivery_date" class="form-control form-control-lg bg-light fs-6" >
+
+    <!-- Main Container -->
+    <div class="container py-5">
+        <form method="POST">
+            {% csrf_token %}
+            {{ formset.management_form }}
+
+            <div class="row justify-content-center">
+                <!-- Box 1 -->
+                <div class="col-md-12 mb-4">
+                    <div class="border rounded-5 p-4 bg-white shadow box-shadow" style="width: 95%; margin: 0 auto;">
+                        <h4 class="border-bottom pb-2 mb-4 text-primary">Reception Note Details</h4>
+                        <div class="mb-3">
+                            <label for="delivery_address" class="form-label">Reception Address</label>
+                            <input type="text" id="delivery_address" name="delivery_address" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="delivery_date" class="form-label">Reception Date</label>
+                            <input type="date" id="delivery_date" name="delivery_date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="supplier" class="form-label">Select Supplier</label>
+                            <select name="supplier" id="supplier" class="form-select" required>
+                                <option value="" disabled selected>Choose a supplier</option>
+                                {% for supplier in suppliers %}
+                                    <option value="{{ supplier.pk }}">{{ supplier.supplier_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <label for="supplier_id" class="form-label">Select Supplier:</label>
-                <select name="supplier_id" id="supplier_id" class="form-select" required>
-                    <option value="" disabled selected>Choose a supplier</option>
-                    {% for supplier in suppliers %}
-                        <option value="{{ supplier.supplier_id }}">{{ supplier.supplier_name }}</option>
-                    {% endfor %}
-                </select> 
-            </br>
-                <label for="item" class="form-label">Select Item:</label>
-                <select name="item" id="item" class="form-select" required>
-                    <option value="" disabled selected>Choose an item</option>
-                    {% for product in products %}
-                        <option value="{{ product.item }}">{{ product.product_name }}</option>
-                    {% endfor %}
-                </select>
-            </br>
-
-            <label for="variant" class="form-label">Select Variant:</label>
-            <select name="variant" id="variant" class="form-select" required>
-                <option value="" disabled selected>Choose a variant</option>
-                {% for variant in variants %}
-                    <option value="{{ variant.variant_id }}">{{ variant.variant_value }}</option>
-                {% endfor %}
-            </select>
-        </br>
-            </div>
-
-    <!-------------------- ------ Right Box ---------------------------->
-        
-                <div class="col-md-6">
-                 <h5 class="mb-4">arrival data</h5>
-            
-                            <div class="mb-3">
-                                <label for="datef" class="form-label">qantity delivred</label>
-                        <input type="text" id="quantity_delivered" name="quantity_delivered" class="form-control form-control-lg bg-light fs-6" required>
+    
+                <!-- Box 2 -->
+                <div class="col-md-12 mb-4">
+                    <div class="border rounded-5 p-4 bg-white shadow box-shadow" style="width: 95%; margin: 0 auto;">
+                        <h4 class="border-bottom pb-2 mb-4 text-primary">Product and Variant Combinations</h4>
+                        <table class="table table-bordered align-middle" style="width: 100%; table-layout: fixed;">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th style="width: 18%;">Product</th>
+                                    <th style="width: 16%;">Variant</th>
+                                    <th style="width: 16%;">Value</th>
+                                    <th style="width: 16%;">Variant</th>
+                                    <th style="width: 16%;">Value</th>
+                                    <th style="width: 10%;">Quantity</th>
+                                    <th style="width: 8%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variant-combinations">
+                                <tr>
+                                    <td>
+                                        <select name="lines-0-item" class="form-select item-select" required>
+                                            <option value="" disabled selected>Choose a product</option>
+                                            {% for item in items %}
+                                                <option value="{{ item.item }}">{{ item.product_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="lines-0-variant_1" class="form-select variant-select">
+                                            <option value="" disabled selected>Choose a variant</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="lines-0-variant_value_1" class="form-select value-select">
+                                            <option value="" disabled selected>Choose a value</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="lines-0-variant_2" class="form-select variant-select">
+                                            <option value="" disabled selected>Choose a variant</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="lines-0-variant_value_2" class="form-select value-select">
+                                            <option value="" disabled selected>Choose a value</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="lines-0-quantity" class="form-control" min="1" required>
+                                    </td>
+                                    <td>
+                                        <input type="hidden" name="lines-0-variant_combination"> <!-- Hidden field for combination -->
+                                        <button type="button" class="btn btn-danger remove-row">Remove</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        
+                        <div class="mt-3 text-center">
+                            <button type="button" class="btn btn-success" id="add-row" data-bs-toggle="tooltip" data-bs-placement="top" title="Add another combination to the table.">
+                                Add Another Combination
+                            </button>
+                             </div>
                     </div>
-                            <div class="mb-3">
-                                <label for="datef" class="form-label">Unit of Measure</label>
-                        <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control form-control-lg bg-light fs-6" required>
-                    </div>
-                            <div class="mb-3">
-                                <label for="datef" class="form-label">transportation type</label>
-                        <input type="text" id="transportation_type" name="transportation_type" class="form-control form-control-lg bg-light fs-6" required>
-                    </div>
-               
-                    <div class="d-flex flex-column justify-content-center mt-3">
-                        <a href="{% url 'add_bonreception' %}">
-                        <button class="btn btn-lg btn-primary w-100" type="submit">Add reception note</button>
-                    </a>
-                    </div>
-            </form>
-            <div class="d-flex flex-column justify-content-center mt-3">
-                <button class="btn btn-secondary w-100" type="submit">print reception note</button>
-        </div>
-        <div class="d-flex flex-column justify-content-center mt-3">
-            <a href="{% url 'all_bonreception' %}"  class="btn btn-outline-primary w-100">show receptions notes  </a>
                 </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        Add Reception Note
+                            <span id="loading-spinner" class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
+                    <button type="submit" class="btn btn-secondary" onclick="window.print()">Print Reception Note</button>
+                    <a href="{% url 'all_bonreception' %}" class="btn btn-outline-primary">Show Reception Notes</a>
+                </div>
+            </div>
+        </form>
 
-          </div>
-       </div> 
+    </div>
+    
+    
+   
     
 
     
+
+    <!-- Footer -->
     <footer class="mt-5 bg-dark text-white py-4">
         <div class="container">
             <div class="row">
@@ -165,6 +197,148 @@
         <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM fully loaded and script initialized.');
+        
+            const variantData = {{ variant_data|safe }};
+            const tableBody = document.getElementById('variant-combinations');
+            const addRowButton = document.getElementById('add-row');
+        
+            // Listener for form submission
+            document.querySelector('form').addEventListener('submit', function (e) {
+                console.log('Preparing to submit...');
+                const rows = document.querySelectorAll('#variant-combinations tr');
+        
+                rows.forEach((row, index) => {
+                    const item = document.querySelector('.item-select').value;  // Always take the first item-select
+                    const variants = {};
+        
+                    row.querySelectorAll('.variant-select').forEach((variantSelect, idx) => {
+                        const variantName = variantSelect.value;
+                        const valueSelect = row.querySelector(`.value-select[name="lines-${index}-variant_value_${idx + 1}"]`);
+                        if (variantName && valueSelect && valueSelect.value) {
+                            variants[variantName] = valueSelect.value;
+                        }
+                    });
+        
+                    const variantCombinationInput = row.querySelector(`input[name="lines-${index}-variant_combination"]`);
+                    if (variantCombinationInput) {
+                        variantCombinationInput.value = JSON.stringify(variants);
+                    }
+        
+                    if (!item || Object.keys(variants).length === 0) {
+                        e.preventDefault();
+                        console.error(`Row ${index + 1}: Missing required fields.`);
+                        alert(`Row ${index + 1}: Please complete all required fields.`);
+                    }
+                });
+            });
+        
+            // Populate variants and their values dynamically
+            tableBody.addEventListener('change', function (event) {
+                const row = event.target.closest('tr');
+                const productId = row.querySelector('.item-select')?.value;
+        
+                if (event.target.classList.contains('variant-select')) {
+                    // Update value dropdown based on the selected variant
+                    const variant = event.target.value;
+                    const valueSelect = row.querySelector(`.value-select[name="${event.target.name.replace('variant', 'variant_value')}"]`);
+        
+                    // Clear existing options
+                    valueSelect.innerHTML = '<option value="" disabled selected>Choose a value</option>';
+        
+                    if (variantData[productId] && variantData[productId][variant]) {
+                        variantData[productId][variant].forEach(value => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = value;
+                            valueSelect.appendChild(option);
+                        });
+                    } else {
+                        console.warn(`No values found for variant "${variant}" in product ID "${productId}"`);
+                    }
+                }
+        
+                if (event.target.classList.contains('item-select')) {
+                    // Update variants based on selected product
+                    const variantSelects = row.querySelectorAll('.variant-select');
+                    const valueSelects = row.querySelectorAll('.value-select');
+        
+                    variantSelects.forEach(select => {
+                        select.innerHTML = '<option value="" disabled selected>Choose a variant</option>';
+                        if (variantData[productId]) {
+                            Object.keys(variantData[productId]).forEach(variant => {
+                                const option = document.createElement('option');
+                                option.value = variant;
+                                option.textContent = variant;
+                                select.appendChild(option);
+                            });
+                        }
+                    });
+        
+                    valueSelects.forEach(select => {
+                        select.innerHTML = '<option value="" disabled selected>Choose a value</option>';
+                    });
+                }
+            });
+        
+            // Add a new row
+            addRowButton.addEventListener('click', function () {
+                console.log('Adding a new row...');
+                const newRow = tableBody.rows[0].cloneNode(true);
+        
+                newRow.querySelectorAll('input, select').forEach((input) => {
+                    input.value = '';
+                    const nameAttr = input.getAttribute('name');
+                    if (nameAttr) {
+                        const updatedName = nameAttr.replace(/\d+/, tableBody.rows.length);
+                        input.setAttribute('name', updatedName);
+                    }
+                });
+        
+                tableBody.appendChild(newRow);
+                updateTotalForms();
+            });
+        
+            // Remove a row
+            tableBody.addEventListener('click', function (event) {
+                if (event.target.classList.contains('remove-row')) {
+                    if (tableBody.rows.length > 1) {
+                        event.target.closest('tr').remove();
+                        updateTotalForms();
+                    }
+                }
+            });
+        
+            function updateTotalForms() {
+                const totalForms = document.querySelector('input[name="lines-TOTAL_FORMS"]');
+                totalForms.value = tableBody.rows.length;
+                console.log('Updated TOTAL_FORMS:', totalForms.value);
+            }
+        
+            updateTotalForms();
+        });
+        </script>
+        
+        
+        
+    
+        
+
+    
+            
+    
+    
+    
 </body>
 </html>

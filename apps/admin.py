@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import customer,facture ,itemvariant,itemvariant,item,customuser,lead,leaddata, supplier,bonreception, retour , Command, Delivery , Stock
+from .models import customer,facture , CommandLine ,itemvariant,itemvariant,item,customuser,lead,leaddata, supplier,bonreception, retour , Command, Delivery , Stock
 
 admin.site.register(item)
 admin.site.register(itemvariant)
@@ -14,6 +14,9 @@ admin.site.register(retour)
 admin.site.register(Command)
 admin.site.register(Delivery)
 admin.site.register(Stock)
+admin.site.register(CommandLine)
+
+
 
 
 

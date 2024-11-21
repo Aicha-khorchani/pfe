@@ -78,7 +78,14 @@
                         <td>{{ itemvariant.variant_id }}</td>
                         <td>{{ itemvariant.item.product_name }}</td>
                         <td>{{ itemvariant.variant_name }}</td>
-                        <td>{{ itemvariant.variant_value }}</td>
+                        <td>
+                            {% if itemvariant.variant_values %}
+                                {{ itemvariant.variant_values|join:", " }} 
+                            {% else %}
+                                No values
+                            {% endif %}
+                        </td>
+
                         <td>
                         <a href="{% url 'update_item_variant' itemvariant.variant_id %}">
                               <button class="btn btn-sm btn-custom">Edit</button>

@@ -68,11 +68,6 @@
                         <th>date</th>
                         <th>address</th>
                         <th>supplier</th>
-                        <th>item</th>
-                        <th>variant</th>
-                        <th>quantity delivered</th>
-                        <th>unit of measure</th>
-                        <th>transportation type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -83,11 +78,7 @@
                         <td>{{ bonreception.delivery_date }}</td>
                         <td>{{ bonreception.delivery_address }}</td>
                         <td>{{ bonreception.supplier_id.supplier_name }}</td> 
-                        <td>{{ bonreception.item.product_name }}</td>        
-                        <td>{{ bonreception.variant.variant_name }}</td>
-                        <td>{{ bonreception.quantity_delivered }}</td>
-                        <td>{{ bonreception.unit_of_measure }}</td>
-                        <td>{{ bonreception.transportation_type }}</td>
+
                         <td>
 
                         <a href="{% url 'update_bonreception' bonreception.delivery %}">

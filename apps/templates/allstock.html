@@ -14,37 +14,33 @@
     <script src="{% static 'main.js' %}"></script>
     <title>COM ARKEYEZ | stock</title>
 </head>
-<body>    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-        <a class="navbar-brand" >ARKEYEZ</a>
-        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-            <li class="nav-item text-dark font-weight-bold">
-            <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-        </li> <span> </span >
-        <li class="nav-item text-dark font-weight-bold">
-            <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-        </li>
-        <li class="nav-item text-dark font-weight-bold">
-         <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
-     </li> <span> </span >
-     <li class="nav-item text-dark font-weight-bold">
-         <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
-     </li>
-     <li class="nav-item text-dark font-weight-bold">
-      <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-  </li>
-    </ul>
-            <div class="search-container">
-                <form class="d-flex" method="GET" action="{% url 'search_product' %}">
-                    {% csrf_token %}
-                    <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" style="max-width: 200px;" placeholder="Search by product name...">
-                    <button class="search-button btn btn-primary" type="submit" style="font-size: 12px; padding: 0.25rem 0.5rem;">Search</button>
-                </form>
-            </div>
+<body>        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
+            </li>
+            </ul>
         </div>
+
+    </div>
 </nav>
     <!----------------------- Main Container -------------------------->
 
@@ -69,29 +65,30 @@
                      <p>Total Quantity Available: {{ total_quantity }}</p> 
                 </div> 
                     <div class="container mt-5">
-                        <table class="table">
+                        <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>product namr</th>
-                                    <th>variant name</th>
-                                    <th>variant value</th>
-                                    <th>quantity available</th>
+                                    <th>Item Name</th>
+                                    <th>Variant Combination</th>
+                                    <th>Quantity Available</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for stock in stocks %}
                                 <tr>
-                                  <td>{{ stock.item.product_name }}</td>
-                                  <td>{{ stock.item_variant.variant_name }}</td>
-                                  <td>{{ stock.item_variant.variant_value }}</td>
-                                  <td>{{ stock.quantity_available }}</td>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="11">No products are available.</td>
-                                    </tr>
-                            {% endfor %}
+                                    <td>{{ stock.item }}</td>
+                                    <td>
+                                        {% for variant, value in stock.variant_combination.items %}
+                                            {{ variant }}: {{ value }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ stock.quantity }}</td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
+                        
+                        
                    </div>
                 </div>
                 <div class="input-group mb-3 d-flex justify-content-center">
