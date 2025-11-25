@@ -2,25 +2,34 @@ from django.conf import settings
 from django.urls import path
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from .views import  add_itemvariant, add_item, allcustomers, customer_delete, home, add_customer, search_customers, update_password
-from .views import update_customer, update_item, variant_delete, update_item_variant,updatesupplier,delete_supplier,admin,notification_view
-from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners,get_variants
-from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list,search_note , get_commands
+from .views import  add_itemvariant, add_item, allcustomers, customer_delete, home, add_customer, search_customers, update_password,get_commands_by_customer
+from .views import update_customer, update_item, variant_delete, update_item_variant,updatesupplier,delete_supplier,admin, mark_notifications_read
+from .views import logout_view, product_delete, all_items,  login_view, search_product, registration_view, leads,stock,partners, get_variants, notification_list
+from .views import add_lead,search_lead ,all_leads , delete_lead,updatelead,add_data,all_Details,add_supplier,supplier_list,search_note , get_commands,notification_detail
 from .views import delete_retour,update_retour,add_retour,all_retour, doc, search_return ,add_bonreception,update_bonreception,all_bonreception,delete_bonreception
 from .views import invoice,returne,reception,update_facture ,delete_facture,get_all_factures,search_facture,add_facture,get_stock_levels,admin_user_list
 from .views import user_list,user_create,user_update,user_delete,admin_user_create,admin_user_delete,admin_user_create,admin_user_update,admin_user_delete
 from .views import search_supplier,search_itemvariant,search_bonreception, search_leaddata,add_delivery,update_delivery,get_delivery,delete_delivery,search_delivery
-from .views import update_command,search_command,get_command,add_command,delete_command ,livreur_create_view,livreur ,add_note,edit_note,all_notes,delete_note
-
+from .views import update_command,search_command,get_command,add_command,delete_command ,livreur_create_view,livreur ,add_note,edit_note,all_notes,delete_note, productivity_dashboard_page
+from .views import sales_dashboard_data,sales_dashboard_page ,stock_dashboard_page , returns_and_losses_dashboard ,returns_and_losses_page , productivity_dashboard_data,page
 
 urlpatterns = [
     path('',login_view, name='login'),
     path('admin',admin, name='admin'),
+    path('productivity_dashboard_page',productivity_dashboard_page, name='productivity_dashboard_page'),
+    path('sales_dashboard_data',sales_dashboard_data, name='sales_dashboard_data'),
+    path('sales_dashboard_page',sales_dashboard_page, name='sales_dashboard_page'),
+    path('stock_dashboard_page',stock_dashboard_page, name='stock_dashboard_page'),
+    path('returns_and_losses_dashboard',returns_and_losses_dashboard, name='returns_and_losses_dashboard'),
+    path('returns_and_losses_page', returns_and_losses_page, name='returns_and_losses_page'),
+    path('productivity_dashboard_data', productivity_dashboard_data, name='productivity_dashboard_data'),
     path('livreur',livreur, name='livreur'),
-    path('add_note',add_note, name='add_note'),
+    path('add_note/',add_note, name='add_note'),
     path('all_notes/', all_notes, name='all_notes'),
     path('get_variants/<int:item>/', get_variants, name='get_variants'),
-    path('notification/', notification_view, name='notification_view'),
+    path('notifications/<int:notification_id>/', notification_detail, name='notification_detail'),
+    path('notifications/', notification_list, name='notification_list'),
+    path('mark-notifications-read/', mark_notifications_read, name='mark_notifications_read'),
     path('edit_note/<int:note_id>/', edit_note, name='edit_note'),
     path('delete_note/<int:note_id>/', delete_note, name='delete_note'),
     path('search_note/', search_note, name='search_note'),
@@ -30,7 +39,7 @@ urlpatterns = [
     path('admin/list/', admin_user_list, name='admin_user_list'),    
     path('add_delivery/', add_delivery, name='add_delivery'),
     path('delete_delivery/<int:delivery_id>/', delete_delivery, name='delete_delivery'),
-    path('delete_command/<int:Command_id>/', delete_command, name='delete_command'),
+    path('delete_command/<int:pk>/', delete_command, name='delete_command'),
     path('update_command/<int:pk>/', update_command, name='update_command'),
     path('search_command/', search_command, name='search_command'),
     path('get_command/', get_command, name='get_command'),
@@ -41,7 +50,6 @@ urlpatterns = [
     path('users/', user_list, name='user_list'),
     path('users/create/', user_create, name='user_create'),
     path('livreur/create/', livreur_create_view, name='livreur_create_view'),
-
     path('users/<int:user_id>/edit/', user_update, name='user_update'),
     path('users/<int:user_id>/delete/', user_delete, name='user_delete'),
     path('stock_levels/', get_stock_levels, name='get_stock_levels'), 
@@ -50,9 +58,10 @@ urlpatterns = [
     path('partners', partners, name='partners'),
     path('add_facture/', add_facture, name='add_facture'),    
     path('get_commands/<int:facture_id>/', get_commands, name='get_commands'),
-
     path('update_facture/<int:facture_id>/', update_facture, name='update_facture'),
-    path('delete_facture', delete_facture, name='delete_facture'),
+    path('get_commands_by_customer/<int:customer_id>/', get_commands_by_customer, name='get_commands_by_customer'),
+
+    path('delete_facture/<int:facture_id>/', delete_facture, name='delete_facture'),
     path('get_all_factures', get_all_factures, name='get_all_factures'),    
     path('search_facture', search_facture, name='search_facture'),  
     path('search_supplier', search_supplier, name='search_supplier'),  
@@ -62,15 +71,15 @@ urlpatterns = [
     path('returne', returne, name='returne'),    
     path('reception', reception, name='reception'),    
     path('add_bonreception', add_bonreception, name='add_bonreception'),
-    path('update_bonreception/<int:delivery>', update_bonreception, name='update_bonreception'),
+    path('update_bonreception/<int:delivery_id>/', update_bonreception, name='update_bonreception'),
     path('all_bonreception', all_bonreception, name='all_bonreception'),
-    path('delete_bonreception', delete_bonreception, name='delete_bonreception'),
+    path('delete_bonreception/<int:delivery_id>/', delete_bonreception, name='delete_bonreception'),
     path('search_bonreception', search_bonreception, name='search_bonreception'),   
-    path('addretour', add_retour, name='add_retour'),
+    path('add_retour', add_retour, name='add_retour'),
     path('search_return', search_return , name='search_return'),  
     path('update_retour/<int:retour_id>', update_retour, name='update_retour'),
     path('all_retour', all_retour, name='all_retour'),
-    path('delete_retour', delete_retour, name='delete_retour'),
+    path('delete_retour/<pk>/', delete_retour, name='delete_retour'),
     path('add_supplier', add_supplier, name='add_supplier'),
     path('all_suppliers.html',supplier_list, name='supplier_list'),
     path('all_leads/', all_leads, name='all_leads'),
@@ -83,9 +92,9 @@ urlpatterns = [
     path('addproduct.html/', add_item, name='addproduct'),
     path('addvariant.html/',add_itemvariant, name='addvariant'),
     path('customer/delete/', customer_delete, name='deletecustomer'),
-    path('product/delete/', product_delete, name='deleteproduct'),
+    path('product_delete/<int:item_id>/', product_delete, name='product_delete'),
     path('supplier/delete/', delete_supplier, name='delete_supplier'),
-    path('variant/delete/', variant_delete, name='deletevariant'),
+    path('variant_delete/<int:variant_id>/', variant_delete, name='variant_delete'),
     path('allcustomers/updatecustomer.html/<customer_id>/',update_customer, name='updatecustomer'),
     path('search_customers/', search_customers, name='search_customers'),
     path('products/update_item/<int:item_id>/',update_item, name='update_item'),

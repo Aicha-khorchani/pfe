@@ -1,5 +1,11 @@
-import decimal
+from django.contrib.messages import get_messages
 import json
+from django.db.models.functions import TruncMonth
+from django.core.serializers.json import DjangoJSONEncoder
+from datetime import date, datetime, timedelta
+from django.utils import timezone as django_timezone
+from django.utils.timezone import make_aware, now 
+from django.db.models import Sum , Count , F, FloatField
 from django.http import JsonResponse
 from django.db import transaction 
 import logging
@@ -8,22 +14,25 @@ from django.forms import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework.decorators import api_view
-from .models import  Livreurs, Note, Stock, customuser,CommandLine, facture, leaddata, lead, customer, itemvariant, item, supplier,Notification , retour,bonreception ,AdminUser,Delivery,Command
-from .forms import CommandForm,CommandLineFormSet, CustomUserChangeForm, DeleteSupplierForm, FactureForm, LivreurCreationForm, UpdateSupplierForm, customerDeleteForm, ItemDeleteForm, LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm, itemForm
-from .forms import  UpdateitemForm, UpdateItemVariant, VariantDeleteForm, customuserCreationForm ,RetourForm,RetourDeleteForm,BonReceptionForm,AdminUserCreationForm , BonReceptionLineFormSet  
+from .models import  Livreurs, Note, Stock, customuser,CommandLine, facture, leaddata, lead, customer, itemvariant, item, supplier,Notification,BonReceptionLine , retour,bonreception ,AdminUser,Delivery,Command
+from .forms import CommandForm,CommandLineFormSet, CustomUserChangeForm, DeleteSupplierForm, FactureForm, LivreurCreationForm, UpdateSupplierForm, customerDeleteForm,  LoginForm, UpdatecustomerForm,DeleteLeadForm, UpdateLeadForm, itemForm
+from .forms import  UpdateitemForm, UpdateItemVariant, customuserCreationForm ,RetourForm,BonReceptionForm,AdminUserCreationForm , BonReceptionLineFormSet  
 from django.db.models import Q
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from decimal import Decimal, InvalidOperation
 from django.contrib.auth.decorators import user_passes_test ,login_required
 from django.db.models import Prefetch
-import traceback
+from django.core.paginator import Paginator
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 import re
 
 
 
 
 
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 
 
 
@@ -32,14 +41,636 @@ def registration_view(request):
         form = customuserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('home')
+            return redirect('login')
     else:
         form = customuserCreationForm()
     return render(request, 'register.html', {'form': form})
 
 
 
-@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def get_variants(request, item):
+    try:
+        variants = itemvariant.objects.filter(item_id=item).values('variant_name', 'variant_values')
+        return JsonResponse({"success": True, "variants": list(variants)})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+
+
+
+# dashboard function men hna ibdou 
+
+
+def get_low_stock_items():
+    return Stock.objects.filter(quantity_available__lt=10).values(
+        'item__product_name', 'quantity_available'
+    ).order_by('quantity_available')
+
+def get_out_of_stock_items():
+    return Stock.objects.filter(quantity_available=0).values('item__product_name')
+
+def get_most_replenished_items():
+    return BonReceptionLine.objects.values(
+        'item__product_name'
+    ).annotate(total_replenished=Sum('quantity')).order_by('-total_replenished')[:5]
+
+def get_top_customers():
+    return Command.objects.values(
+        'customer__customer_name'
+    ).annotate(total_spent=Sum('total_amount'), total_orders=Count('id')).order_by('-total_spent')[:5]
+
+def get_inactive_customers():
+    six_months_ago = date.today() - timedelta(days=180)
+    return customer.objects.exclude(
+        command__order_date__gte=six_months_ago
+    ).values('customer_name')
+
+def get_customer_retention_rate():
+    total_customers = customer.objects.count()
+    repeat_customers = Command.objects.values('customer').annotate(order_count=Count('id')).filter(order_count__gt=1).count()
+    return (repeat_customers / total_customers) * 100 if total_customers > 0 else 0
+
+def get_best_selling_product_all_time():
+    return CommandLine.objects.values(
+        'product__product_name'
+    ).annotate(
+        total_quantity_sold=Sum('quantity')
+    ).order_by('-total_quantity_sold').first()
+
+def get_livreur_with_most_deliveries():
+    livreur = Livreurs.objects.annotate(
+        total_deliveries=Count('deliveries')
+    ).order_by('-total_deliveries').values('username', 'total_deliveries').first()
+    
+    if livreur:
+        return {
+            'livreur_name': livreur['username'], 
+            'total_deliveries': livreur['total_deliveries'] 
+        }
+    return None  
+
+
+def get_item_with_most_returns():
+    return retour.objects.values(
+        'facture__commands__lines__product__product_name'  
+    ).annotate(
+        return_count=Count('retour')  
+    ).order_by('-return_count').first()
+    
+    
+def get_least_selling_product_all_time():
+    unsold_products = item.objects.exclude(
+        commandline__isnull=False
+    ).first()
+
+    if unsold_products:
+        return {
+            'product_name': unsold_products.product_name,
+            'total_quantity_sold': 0
+        }
+
+    least_selling_product = CommandLine.objects.values(
+        'product__product_name'
+    ).annotate(
+        total_quantity_sold=Sum('quantity')
+    ).order_by('total_quantity_sold').first()
+
+    if least_selling_product:
+        return {
+            'product_name': least_selling_product['product__product_name'],
+            'total_quantity_sold': least_selling_product['total_quantity_sold']
+        }
+
+    return {}
+
+    
+    
+def get_unsold_products():
+    unsold_products = item.objects.exclude(
+        commandline__isnull=False  
+    ).annotate(
+        total_quantity_sold=Sum('commandline__quantity') 
+    ).values('product_name', 'total_quantity_sold')  # Ensure it's a list of dictionaries
+
+    return list(unsold_products)
+
+
+def get_most_active_customer():
+    return Command.objects.values(
+        'customer__customer_name'
+    ).annotate(
+        total_commands=Count('id')
+    ).order_by('-total_commands').first()
+    
+
+def get_monthly_least_selling_product():
+    current_month = now().month
+
+    unsold_product = item.objects.exclude(
+        commandline__command__order_date__month=current_month  
+    ).first()
+
+    if unsold_product:
+        return {
+            'product_name': unsold_product.product_name,
+            'total_quantity_sold': 0
+        }
+
+    return CommandLine.objects.filter(
+        command__order_date__month=current_month
+    ).values(
+        'product__product_name'
+    ).annotate(
+        total_quantity_sold=Sum('quantity')
+    ).order_by('total_quantity_sold').first()
+
+
+def get_livreur_with_least_deliveries():
+    livreur = Livreurs.objects.annotate(
+        total_deliveries=Count('deliveries')
+    ).order_by('total_deliveries').values('username', 'total_deliveries').first()
+    
+    if livreur:
+        return {
+            'livreur_name': livreur['username'],  
+            'total_deliveries': livreur['total_deliveries'] 
+        }
+    return None 
+    
+
+def get_monthly_best_selling_product():
+    current_month = now().month
+    best_selling_product = CommandLine.objects.filter(
+        command__order_date__month=current_month
+    ).values(
+        'product__product_name'
+    ).annotate(
+        total_quantity_sold=Sum('quantity')
+    ).order_by('-total_quantity_sold').first()
+
+    if best_selling_product:
+        return {
+            'product_name': best_selling_product['product__product_name'],
+            'total_quantity_sold': best_selling_product['total_quantity_sold']
+        }
+
+    return {}
+
+    
+
+def get_supplier_with_most_returns():
+    return retour.objects.values(
+        'supplier__supplier_name'
+    ).annotate(
+        return_count=Count('retour')
+    ).order_by('-return_count').first()
+    
+def get_livreur_with_most_returns():
+    return retour.objects.values(
+        'livreur__username'
+    ).annotate(
+        return_count=Count('retour')
+    ).order_by('-return_count').first()
+
+def get_customer_with_most_returns():
+    return retour.objects.values(
+        'facture__customer__customer_name'
+    ).annotate(
+        return_count=Count('retour')
+    ).order_by('-return_count').first()
+    
+    
+def get_best_customer_by_spent_amount():
+    return Command.objects.values(
+        'customer__customer_name'
+    ).annotate(
+        total_spent=Sum('total_amount')  
+    ).order_by('-total_spent').first()
+
+
+
+
+def get_monthly_sales_trends():
+    current_month = now().month
+    return Command.objects.filter(
+        order_date__month=current_month
+    ).values(
+        'order_date'
+    ).annotate(
+        daily_sales=Sum('total_amount')
+    ).order_by('order_date')
+
+
+
+def get_monthly_revenue():
+    current_month = now().month
+    return Command.objects.filter(
+        order_date__month=current_month
+    ).aggregate(
+        total_revenue=Sum('total_amount')  
+    )['total_revenue'] or 0 
+
+
+
+def get_best_supplier_by_weighted_score():
+    return BonReceptionLine.objects.values(
+        'bon_reception__supplier__supplier_name',  
+        'bon_reception__supplier__product_quality',
+        'bon_reception__supplier__interaction_quality',
+        'bon_reception__supplier__cost'
+    ).annotate(
+        total_quantity_supplied=Sum('quantity'), 
+        weighted_score=(
+            (F('bon_reception__supplier__product_quality') * 0.5) +  
+            (F('bon_reception__supplier__interaction_quality') * 0.3) -
+            (F('bon_reception__supplier__cost') * 0.2)  
+        )
+    ).order_by('-weighted_score', '-total_quantity_supplied').first()
+    
+    
+    
+
+def get_worst_supplier_by_weighted_score():
+    return BonReceptionLine.objects.values(
+        'bon_reception__supplier__supplier_name',  
+        'bon_reception__supplier__product_quality',
+        'bon_reception__supplier__interaction_quality',
+        'bon_reception__supplier__cost'
+    ).annotate(
+        total_quantity_supplied=Sum('quantity'), 
+        weighted_score=( 
+            (F('bon_reception__supplier__product_quality') * 0.5) +  
+            (F('bon_reception__supplier__interaction_quality') * 0.3) - 
+            (F('bon_reception__supplier__cost') * 0.2)  
+        )
+    ).order_by('weighted_score', 'total_quantity_supplied').first()
+  
+
+def get_monthly_highest_value_command():
+    current_month = now().month
+
+    highest_value_command = Command.objects.filter(
+        order_date__month=current_month
+    ).order_by('-total_amount').values(
+        'id',
+        'total_amount',
+        'customer__customer_name', 
+        'lines__product__product_name',
+        'lines__variant_combination'  
+    ).first()
+
+    return highest_value_command
+
+def get_day_with_best_sales():
+    current_month = now().month
+    return Command.objects.filter(
+        order_date__month=current_month
+    ).values(
+        'order_date'
+    ).annotate(
+        total_sales=Sum('total_amount')
+    ).order_by('-total_sales').first()
+
+def monthly_returns():
+    current_month = django_timezone.now().month
+    current_year = django_timezone.now().year
+    returns_this_month = retour.objects.filter(
+        date_retour__year=current_year,
+        date_retour__month=current_month
+    ).values('date_retour').annotate(total_returns=Count('retour'))
+
+    return returns_this_month
+
+
+
+
+def monthly_returns_by_supplier():
+    current_month = now().month
+    current_year = now().year
+    naive_date = datetime(current_year, current_month, 1)
+    aware_date = make_aware(naive_date)    
+    returns_by_supplier = retour.objects.filter(
+        date_retour__gte=aware_date,
+        date_retour__lt=now()
+    ).values('supplier__supplier_name').annotate(total_returns=Count('retour'))
+
+    return returns_by_supplier
+
+
+def sales_dashboard_data(request):
+    monthly_sales_trends = Command.objects.filter(
+        order_date__month=date.today().month
+    ).values('order_date').annotate(daily_sales=Sum('total_amount')).order_by('order_date')
+
+    monthly_sales_trends = [
+        {'order_date': entry['order_date'].strftime('%Y-%m-%d'), 'daily_sales': entry['daily_sales']}
+        for entry in monthly_sales_trends
+    ]
+    best_selling_products = Command.objects.values(
+        'lines__product__product_name'
+    ).annotate(total_quantity_sold=Sum('lines__quantity')).order_by('-total_quantity_sold')[:5]
+    best_selling_products = [
+        {'product_name': entry['lines__product__product_name'], 'total_quantity_sold': entry['total_quantity_sold']}
+        for entry in best_selling_products
+    ]
+    monthly_revenue = Command.objects.filter(order_date__month=date.today().month).aggregate(
+        total_revenue=Sum('total_amount')
+    )['total_revenue'] or 0
+
+    day_with_best_sales = (
+        max(monthly_sales_trends, key=lambda x: x['daily_sales'])
+        if monthly_sales_trends else None
+    )
+
+    response_data = {
+        'sales_labels': [entry['order_date'] for entry in monthly_sales_trends],
+        'sales_values': [entry['daily_sales'] for entry in monthly_sales_trends],
+        'best_seller_labels': [entry['product_name'] for entry in best_selling_products],
+        'best_seller_values': [entry['total_quantity_sold'] for entry in best_selling_products],
+        'monthly_revenue': monthly_revenue,
+        'day_with_best_sales': day_with_best_sales,
+        'get_monthly_highest_value_command':get_monthly_highest_value_command(),
+        'least_seller': get_least_selling_product_all_time(), # hethy 1 get_monthly_least_selling_product
+        'monthly_best_seller': get_monthly_best_selling_product(),   #hethy 2 lazem nzid get_best_selling_product_all_time
+        'unsold_products': get_unsold_products(),     #hethy 3
+    }
+    return JsonResponse(response_data, encoder=DjangoJSONEncoder)
+
+
+
+def sales_dashboard_page(request):
+    return render(request, 'sales_dashboard.html')
+
+
+
+
+
+from django.db.models import QuerySet
+
+
+def stock_dashboard_page(request):
+    context = {
+        'low_stock_items': get_low_stock_items(),
+        'out_of_stock_items': get_out_of_stock_items(),
+        'most_replenished_items': get_most_replenished_items(),
+        'unsold_products': get_unsold_products(),
+    }
+    return render(request, 'stock_dashboard.html', context)
+
+
+
+
+
+def monthly_returns_by_item_view(request):
+    data = (
+        retour.objects.annotate(month=TruncMonth('date_retour'))
+        .values('month', 'facture__commands__lines__product__product_name')
+        .annotate(total_returns=Count('id'))
+        .order_by('month', 'facture__commands__lines__product__product_name')
+    )
+
+    result = [
+        {
+            'month': item['month'].strftime('%Y-%m'),
+            'product_name': item['facture__commands__lines__product__product_name'],
+            'total_returns': item['total_returns']
+        }
+        for item in data
+    ]
+
+    return JsonResponse(result, safe=False)
+
+
+def monthly_returns_by_customer_view(request):
+    data = (
+        retour.objects.annotate(month=TruncMonth('date_retour'))
+        .values('month', 'customer__customer_name')
+        .annotate(total_returns=Count('id'))
+        .order_by('month', 'customer__customer_name')
+    )
+
+    result = [
+        {
+            'month': item['month'].strftime('%Y-%m'),
+            'customer_name': item['customer__customer_name'],
+            'total_returns': item['total_returns']
+        }
+        for item in data
+    ]
+
+    return JsonResponse(result, safe=False)
+
+
+def monthly_returns_by_livreur_view(request):
+    data = (
+        retour.objects.annotate(month=TruncMonth('date_retour'))
+        .values('month', 'livreur__username')
+        .annotate(total_returns=Count('id'))
+        .order_by('month', 'livreur__username')
+    )
+
+    result = [
+        {
+            'month': item['month'].strftime('%Y-%m'),
+            'livreur_username': item['livreur__username'],
+            'total_returns': item['total_returns']
+        }
+        for item in data
+    ]
+
+    return JsonResponse(result, safe=False)
+
+
+
+
+logger = logging.getLogger(__name__)
+
+
+def serialize_queryset(queryset, fields=None):
+    """Helper function to serialize QuerySet objects."""
+    if isinstance(queryset, QuerySet):
+        return list(queryset) if not fields else [
+            {field: item.get(field) for field in fields} for item in queryset
+        ]
+    return queryset
+
+
+
+
+def returns_and_losses_dashboard(request):
+    logger.info('Dashboard view called')
+
+    most_returned_item = get_item_with_most_returns()
+    supplier_with_most_returns = get_supplier_with_most_returns()
+    livreur_with_most_returns = get_livreur_with_most_returns()
+    customer_with_most_returns = get_customer_with_most_returns()
+    least_seller = get_least_selling_product_all_time()
+    
+    monthly_returns_data = retour.objects.annotate(
+        month=TruncMonth('date_retour')
+    ).values('month').annotate(total_returns=Count('retour')).order_by('month')
+
+    monthly_returns_by_supplier_data = retour.objects.annotate(
+        month=TruncMonth('date_retour')
+    ).values('month', 'supplier__supplier_name').annotate(
+        total_returns=Count('retour')
+    ).order_by('month', 'supplier__supplier_name')
+
+    monthly_returns_by_item_data = retour.objects.annotate(
+        month=TruncMonth('date_retour')
+    ).values('month', 'facture__commands__lines__product__product_name').annotate(
+        total_returns=Count('retour')
+    ).order_by('month', 'facture__commands__lines__product__product_name')
+
+    monthly_returns_by_customer_data = retour.objects.annotate(
+        month=TruncMonth('date_retour')
+    ).values('month', 'facture__customer__customer_name').annotate(
+        total_returns=Count('retour')
+    ).order_by('month', 'facture__customer__customer_name')
+
+    monthly_returns_by_livreur_data = retour.objects.annotate(
+        month=TruncMonth('date_retour')
+    ).values('month', 'livreur__username').annotate(
+        total_returns=Count('retour')
+    ).order_by('month', 'livreur__username')
+
+    data = {
+        'most_returned_item': serialize_queryset(
+            most_returned_item, fields=['facture__commands__lines__product__product_name', 'return_count']
+        ),
+        'supplier_with_most_returns': serialize_queryset(
+            supplier_with_most_returns, fields=['supplier__supplier_name', 'return_count']
+        ),
+        'livreur_with_most_returns': serialize_queryset(
+            livreur_with_most_returns, fields=['livreur__username', 'return_count']
+        ),
+        'customer_with_most_returns': serialize_queryset(
+            customer_with_most_returns, fields=['facture__customer__customer_name', 'return_count']
+        ),
+        'least_seller': serialize_queryset(
+            least_seller, fields=['product__product_name', 'total_quantity_sold']
+        ),
+        'monthly_returns': serialize_queryset(
+            monthly_returns_data, fields=['month', 'total_returns']
+        ),
+        'monthly_returns_by_supplier': serialize_queryset(
+            monthly_returns_by_supplier_data, fields=['month', 'supplier__supplier_name', 'total_returns']
+        ),
+        'monthly_returns_by_item': serialize_queryset(
+            monthly_returns_by_item_data, fields=['month', 'facture__commands__lines__product__product_name', 'total_returns']
+        ),
+        'monthly_returns_by_customer': serialize_queryset(
+            monthly_returns_by_customer_data, fields=['month', 'facture__customer__customer_name', 'total_returns']
+        ),
+        'monthly_returns_by_livreur': serialize_queryset(
+            monthly_returns_by_livreur_data, fields=['month', 'livreur__username', 'total_returns']
+        ),
+    }
+
+    return JsonResponse(data)
+
+
+def returns_and_losses_page(request):
+    return render(request, 'returns_losses_dashboard.html')
+
+
+def page(request):
+    return render(request,'page.html')
+
+
+
+ 
+def get_livreur_performance():
+    livreur_performance = Livreurs.objects.annotate(
+        total_deliveries=Count('deliveries'),  
+        total_returns=Count('retour')  
+    ).values('username', 'total_deliveries', 'total_returns')
+    livreur_data = [
+        {'livreur_name': entry['username'], 'total_deliveries': entry['total_deliveries'], 'total_returns': entry['total_returns']}
+        for entry in livreur_performance
+    ]
+    return livreur_data
+
+
+
+def get_customer_retention_rate(request):
+    total_customers = customer.objects.count()  
+    repeat_customers = Command.objects.values('customer').annotate(order_count=Count('id')).filter(order_count__gt=1).count()
+    retention_rate = (repeat_customers / total_customers) * 100 if total_customers > 0 else 0
+    return {'retention_rate': retention_rate}
+
+
+def get_supplier_performance(request):
+    supplier_performance = BonReceptionLine.objects.values(
+        'bon_reception__supplier__supplier_name'
+    ).annotate(
+        total_supplied=Sum('quantity')
+    ).order_by('-total_supplied')
+
+
+    returns_per_supplier = retour.objects.values('supplier').annotate(
+        total_returns=Count('retour')
+    )
+
+    returns_dict = {entry['supplier']: entry['total_returns'] for entry in returns_per_supplier}
+
+    supplier_data = []
+    for entry in supplier_performance:
+        supplier_name = entry['bon_reception__supplier__supplier_name']
+        total_supplied = entry['total_supplied']
+        total_returns = returns_dict.get(supplier_name, 0)  
+
+        supplier_data.append({
+            'supplier_name': supplier_name,
+            'total_supplied': total_supplied,
+            'total_returns': total_returns
+        })
+
+    return supplier_data
+
+
+def productivity_dashboard_data(request):
+    top_customers = get_top_customers()
+    serialized_top_customers = [
+        {
+            'customer_name': customer['customer__customer_name'],
+            'total_spent': customer['total_spent'],
+            'total_orders': customer['total_orders']
+        }
+        for customer in top_customers
+    ]
+    return JsonResponse({
+        'livreur_performance': get_livreur_performance(),
+        'customer_retention_rate': get_customer_retention_rate(request),
+        'supplier_performance': get_supplier_performance(request),
+        'top_livreur': get_livreur_with_most_deliveries(),
+        'least_active_livreur': get_livreur_with_least_deliveries(),
+        'best_supplier': get_best_supplier_by_weighted_score(),
+        'most_active_customer': get_most_active_customer(),
+        'inactive_customers': list(get_inactive_customers().values('customer_name')),
+        'get_best_customer_by_spent_amount':get_best_customer_by_spent_amount(),
+        'get_monthly_highest_value_command':get_monthly_highest_value_command(),
+        'top_customers': serialized_top_customers,
+        'worst_supplier' : get_worst_supplier_by_weighted_score(),
+    })
+
+
+
+def productivity_dashboard_page(request):
+    context = {
+        'top_livreur': get_livreur_with_most_deliveries(),
+        'least_active_livreur': get_livreur_with_least_deliveries(),
+        'best_supplier': get_best_supplier_by_weighted_score(),
+        'most_active_customer': get_most_active_customer(),
+        'inactive_customers': get_inactive_customers(),
+    }
+    return render(request, 'productivity_dashboard.html', context)
+
+
+# =========================================dashboard function men hna =================================================
+
+
+
 def add_bonreception(request):
     if request.method == 'POST':
         print("POST Data:", request.POST)
@@ -78,17 +709,26 @@ def add_bonreception(request):
                             line.save()
 
                             # Update or create stock for this item-variant combination
-                            stock, created = Stock.objects.get_or_create(
+                            stock = Stock.objects.filter(
                                 item=line.item,
-                                item_variant=variant,  # The validated variant from itemvariant
-                                variant_combination=variants,
-                                defaults={'quantity_available': 0}
-                            )
+                                variant_combination=variants
+                            ).first()
 
-                            # Add the line's quantity to the stock
-                            line_quantity = form_line.cleaned_data.get('quantity')  # Now this is an integer
-                            stock.quantity_available += line_quantity
-                            stock.save()
+                            if stock:
+                                # If stock exists, update the quantity
+                                print(f"Existing stock found for {line.item.product_name} with variants {variants}. Updating quantity.")
+                                stock.quantity_available += line.quantity
+                            else:
+                                # If no stock exists, create a new entry
+                                print(f"No existing stock for {line.item.product_name} with variants {variants}. Creating new stock.")
+                                stock = Stock.objects.create(
+                                    item=line.item,
+                                    item_variant=variant,
+                                    variant_combination=variants,
+                                    quantity_available=line.quantity
+                                )
+                            stock.save()  # Save the updated/new stock entry
+                            print(f"Stock updated: {stock}")
 
                     print("All lines and stock updated successfully.")
                     return redirect('all_bonreception')
@@ -124,7 +764,7 @@ def add_bonreception(request):
         'formset': formset,
         'suppliers': suppliers,
         'items': items_queryset,
-        'variant_data': json.dumps(variant_data),
+        'variant_data': json.dumps(variant_data),  # Preload dynamic variant data
     })
 
 
@@ -135,58 +775,185 @@ def add_bonreception(request):
 
 
 
-def update_bonreception(request, delivery):
-    bonreception_instance = get_object_or_404(bonreception, pk=delivery)
-    if request.method == 'POST':
-        print(request.POST)  
-        form = BonReceptionForm(request.POST, instance=bonreception_instance)  
-        
-        if form.is_valid():
-            updated_bonreception_instance = form.save()
-            stock, created = Stock.objects.get_or_create(
-                item=updated_bonreception_instance.item,
-                item_variant=updated_bonreception_instance.variant
-            )
-            if created:
-                stock.quantity_available = updated_bonreception_instance.quantity_delivered
+
+
+def update_bonreception(request, delivery_id):
+    try:
+        # Fetch the existing bon_reception (still required for referencing and updating)
+        bon_reception = get_object_or_404(bonreception, pk=delivery_id)
+        print(f"Fetched bon_reception: {bon_reception}")
+
+        if request.method == 'POST':
+            print("Processing POST request...")
+            # Bind the form and formset to the request data without preloading instance data
+            form = BonReceptionForm(request.POST)  # No instance
+            formset = BonReceptionLineFormSet(request.POST)  # No instance
+
+            # Debugging form validation
+            print(f"Form valid: {form.is_valid()}, Formset valid: {formset.is_valid()}")
+            print(f"Form errors: {form.errors}")
+            print(f"Formset errors: {formset.errors}")
+
+            if form.is_valid() and formset.is_valid():
+                try:
+                    with transaction.atomic():
+                        # Save changes to bon_reception itself (using the existing object)
+                        bon_reception.delivery_address = form.cleaned_data['delivery_address']
+                        bon_reception.delivery_date = form.cleaned_data['delivery_date']
+                        bon_reception.supplier = form.cleaned_data['supplier']
+                        bon_reception.save()
+                        print(f"Updated bon_reception: {bon_reception}")
+
+                        # Adjust stock for removed lines
+                        existing_lines = list(bon_reception.lines.all())
+                        updated_lines = []
+                        print(f"Existing lines: {existing_lines}")
+
+                        for form_line in formset:
+                            print(f"Form Errors for {form_line.prefix}: {form_line.errors}")
+                            if form_line.cleaned_data and not form_line.cleaned_data.get('DELETE', False):
+                                line = form_line.save(commit=False)
+                                updated_lines.append(line)
+
+                                # Adjust stock for updated lines
+                                product = line.item
+                                variant_combination = line.variant_combination
+                                quantity = line.quantity
+                                print(f"Updating line: Product={product}, VariantCombination={variant_combination}, Quantity={quantity}")
+
+                                stock, created = Stock.objects.get_or_create(
+                                    item=product,
+                                    variant_combination=variant_combination,
+                                    defaults={'quantity_available': 0}
+                                )
+                                print(f"Stock before update: {stock.quantity_available}, Created: {created}")
+                                stock.quantity_available += quantity - line.quantity
+                                stock.save()
+                                print(f"Stock after update: {stock.quantity_available}")
+
+                                line.bon_reception = bon_reception
+                                line.save()
+                                print(f"Line saved: {line}")
+
+                        # Handle removed lines
+                        removed_lines = [line for line in existing_lines if line not in updated_lines]
+                        print(f"Removed lines: {removed_lines}")
+                        for line in removed_lines:
+                            product = line.item
+                            variant_combination = line.variant_combination
+                            quantity = line.quantity
+                            print(f"Removing line: Product={product}, VariantCombination={variant_combination}, Quantity={quantity}")
+
+                            stock = Stock.objects.filter(item=product, variant_combination=variant_combination).first()
+                            if stock:
+                                stock.quantity_available -= quantity
+                                stock.save()
+                                print(f"Adjusted stock for removed line: {stock.quantity_available}")
+                            line.delete()
+                            print(f"Line deleted: {line}")
+
+                        # Success message
+                        messages.success(request, f"Reception note {delivery_id} updated successfully.")
+                        return redirect('all_bonreception')
+
+                except Exception as e:
+                    # Rollback on failure
+                    print(f"Transaction failed: {e}")
+                    messages.error(request, f"An unexpected error occurred: {str(e)}")
             else:
-                stock.quantity_available += (updated_bonreception_instance.quantity_delivered - bonreception_instance.quantity_delivered)
-            stock.save()
-
-            return redirect('all_bonreception') 
+                # Handle invalid form or formset
+                messages.error(request, "Invalid form data. Please review and try again.")
         else:
-            print(form.errors)  
+            print("Rendering GET request...")
+            # Initialize empty forms for GET requests (no preloading)
+            form = BonReceptionForm()
+            formset = BonReceptionLineFormSet()
 
-    else:
-        form = BonReceptionForm(instance=bonreception_instance) 
+        # Fetch suppliers and items for rendering the page
+        suppliers = supplier.objects.all()
+        print(f"Suppliers fetched: {suppliers}")
+        items_queryset = item.objects.prefetch_related(
+            Prefetch(
+                'itemvariant_set',
+                queryset=itemvariant.objects.all()
+            )
+        )
+        print(f"Items fetched: {items_queryset}")
 
-    suppliers = supplier.objects.all()
-    products = item.objects.all()
-    variants = itemvariant.objects.all()
+        # Prepare dynamic variant data for the frontend
+        variant_data = {
+            f"{item_obj.pk}": {
+                variant.variant_name: variant.variant_values
+                for variant in item_obj.itemvariant_set.all()
+            }
+            for item_obj in items_queryset
+        }
+        print(f"Variant data prepared: {variant_data}")
 
-    return render(request, 'updatereception.html', {'form': form,'suppliers': suppliers,'products': products,'variants': variants})
+        return render(request, 'updatereception.html', {
+            'form': form,
+            'formset': formset,
+            'suppliers': suppliers,
+            'items': items_queryset,
+            'variant_data': json.dumps(variant_data),
+        })
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
+        return redirect('all_bonreception')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def all_bonreception(request):
-    bonreceptions = bonreception.objects.all()
+    storage = get_messages(request)
+    for message in storage:
+        print("Stored message:", message)
+    bonreceptions = bonreception.objects.prefetch_related('lines__item').all()  
     return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
+
 
 
 def search_bonreception(request):
     if request.method == 'GET':
         searched = request.GET.get('searched', '')
+        bonreceptions = bonreception.objects.all()
+        bon_reception_lines = BonReceptionLine.objects.all()
+
         if searched:
-            results = bonreception.objects.filter(
+            # Filter `bonreception` results
+            bonreceptions = bonreception.objects.filter(
                 Q(delivery_date__icontains=searched) |
                 Q(delivery_address__icontains=searched) |
-                Q(supplier_id__supplier_name__icontains=searched) |
-                Q(item__product_name__icontains=searched) |
-                Q(quantity_delivered__icontains=searched) |
-                Q(variant__variant_name__icontains=searched)
+                Q(supplier__supplier_name__icontains=searched)
             )
-        else:
-            results = bonreception.objects.all()
-        return render(request, 'search_bonreception.html', {'results': results, 'searched': searched})
+
+            # Filter `BonReceptionLine` results
+            bon_reception_lines = BonReceptionLine.objects.filter(
+                Q(item__product_name__icontains=searched) |
+                Q(variant_combination__icontains=searched) |
+                Q(quantity__icontains=searched) |
+                Q(bon_reception__supplier__supplier_name__icontains=searched)
+            )
+
+        return render(
+            request, 
+            'search_bonreception.html', 
+            {'bonreceptions': bonreceptions, 'bon_reception_lines': bon_reception_lines, 'searched': searched}
+        )
     else:
         return render(request, 'search_bonreception.html', {})
 
@@ -202,105 +969,89 @@ def all_leads(request):
     return render(request, 'all_leads.html', {'leads': leads})
 
 def all_retour(request):
-    retours = retour.objects.all()
+    retours = retour.objects.select_related("supplier", "livreur", "facture__customer").all()  
     return render(request, 'allretour.html', {'retours': retours})
 
 
 
 
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.db import transaction
-import json
+
+
 
 def add_retour(request):
     if request.method == 'POST':
         try:
-            with transaction.atomic():
-                # Debug incoming POST data
-                print("===== POST DATA =====")
-                print(request.POST)
-                print("=====================")
+            # Récupérer les données envoyées en JSON
+            data = json.loads(request.body)
 
-                # Extract data from POST request
-                facture_id = request.POST.get('facture')
-                selected_commands = request.POST.get('selected_commands', '[]')
-                supplier_id = request.POST.get('supplier')
-                raison_retour = request.POST.get('raison_retour')
-                date_retour = request.POST.get('date_retour')
-                livreur_id = request.POST.get('livreur')
-                informations_supp = request.POST.get('informations_supp')
+            facture_id = data.get('facture')
+            selected_commands = data.get('selected_commands', [])
+            supplier_id = data.get('supplier')
+            raison_retour = data.get('raison_retour')
+            date_retour = data.get('date_retour')
+            livreur_id = data.get('livreur')
+            informations_supp = data.get('informations_supp')
 
-                # Ensure selected_commands is parsed correctly
-                try:
-                    selected_commands = json.loads(selected_commands)
-                    if isinstance(selected_commands, int):  # Single command case
-                        selected_commands = [selected_commands]
-                    elif not isinstance(selected_commands, list):  # Invalid data
-                        raise ValueError("Invalid selected_commands format")
-                except json.JSONDecodeError:
-                    raise ValueError("Failed to parse selected_commands")
+            # Debug : Affichage des données reçues
+            print(f"Facture ID: {facture_id}")
+            print(f"Selected Commands: {selected_commands}")
+            print(f"Supplier ID: {supplier_id}")
+            print(f"Reason for Return: {raison_retour}")
+            print(f"Return Date: {date_retour}")
+            print(f"Livreur ID: {livreur_id}")
+            print(f"Additional Information: {informations_supp}")
 
-                # Debug extracted data
-                print(f"Facture ID: {facture_id}")
-                print(f"Selected Commands: {selected_commands}")
-                print(f"Supplier ID: {supplier_id}")
-                print(f"Reason for Return: {raison_retour}")
-                print(f"Return Date: {date_retour}")
-                print(f"Livreur ID: {livreur_id}")
-                print(f"Additional Information: {informations_supp}")
+            # Valider et récupérer les objets associés
+            facture_instance = get_object_or_404(facture, pk=facture_id)
+            supplier_instance = get_object_or_404(supplier, pk=supplier_id)
+            livreur_instance = get_object_or_404(Livreurs, pk=livreur_id)
 
-                # Validate and retrieve associated objects
-                facture_instance = get_object_or_404(facture, pk=facture_id)
-                supplier_instance = get_object_or_404(supplier, pk=supplier_id)
-                livreur_instance = get_object_or_404(Livreurs, pk=livreur_id)
+            # Debug : Affichage des objets récupérés
+            print(f"Facture Instance: {facture_instance}")
+            print(f"Supplier Instance: {supplier_instance}")
+            print(f"Livreur Instance: {livreur_instance}")
 
-                # Debug validated objects
-                print(f"Facture Instance: {facture_instance}")
-                print(f"Supplier Instance: {supplier_instance}")
-                print(f"Livreur Instance: {livreur_instance}")
+            # Créer l'instance Retour
+            retour_instance = retour.objects.create(
+                facture=facture_instance,
+                supplier=supplier_instance,
+                raison_retour=raison_retour,
+                date_retour=date_retour,
+                livreur=livreur_instance,
+                informations_supp=informations_supp,
+            )
+            print(f"Retour Instance Created: {retour_instance}")
 
-                # Create the Retour instance
-                retour_instance = retour.objects.create(
-                    facture=facture_instance,
-                    supplier=supplier_instance,
-                    raison_retour=raison_retour,
-                    date_retour=date_retour,
-                    livreur=livreur_instance,
-                    informations_supp=informations_supp,
-                )
-                print(f"Retour Instance Created: {retour_instance}")
+            # Boucle à travers les commandes sélectionnées pour mettre à jour les stocks
+            for command_id in selected_commands:
+                print(f"Processing Command ID: {command_id}")
+                command = get_object_or_404(Command, pk=command_id)
 
-                # Loop through selected commands to process stock updates
-                for command_id in selected_commands:
-                    print(f"Processing Command ID: {command_id}")
-                    command = get_object_or_404(Command, pk=command_id)
+                for line in command.lines.all():
+                    product = line.product
+                    variant_combination = line.variant_combination
+                    quantity = line.quantity
 
-                    for line in command.lines.all():
-                        product = line.product
-                        variant_combination = line.variant_combination
-                        quantity = line.quantity
+                    # Debug : Affichage des lignes de commande
+                    print(f"Command Line - Product: {product}, Variant Combination: {variant_combination}, Quantity: {quantity}")
 
-                        # Debug command line details
-                        print(f"Command Line - Product: {product}, Variant Combination: {variant_combination}, Quantity: {quantity}")
+                    # Mise à jour du stock
+                    stock, created = Stock.objects.get_or_create(
+                        item=product,
+                        variant_combination=variant_combination
+                    )
+                    if created:
+                        stock.quantity_available = quantity
+                        print(f"New Stock Created: {stock}")
+                    else:
+                        stock.quantity_available += quantity
+                        print(f"Updated Stock: {stock}")
 
-                        # Update stock
-                        stock, created = Stock.objects.get_or_create(
-                            item=product,
-                            variant_combination=variant_combination
-                        )
-                        if created:
-                            stock.quantity_available = quantity
-                            print(f"New Stock Created: {stock}")
-                        else:
-                            stock.quantity_available += quantity
-                            print(f"Updated Stock: {stock}")
+                    stock.save()
+                    print(f"Stock Saved: {stock}")
 
-                        stock.save()
-                        print(f"Stock Saved: {stock}")
-
-                print("Retour Process Completed Successfully")
-                return redirect('all_retour')  # Redirect to the page listing all returns
+            print("Retour Process Completed Successfully")
+            return redirect('all_retour')  # Redirection vers la vue all_retour après le traitement réussi
 
         except ValueError as e:
             print(f"Validation Error: {str(e)}")
@@ -310,12 +1061,12 @@ def add_retour(request):
             print(f"Unexpected Error: {str(e)}")
             return JsonResponse({"success": False, "message": str(e)}, status=500)
 
-    # For GET request, prepare data for the form
-    factures = facture.objects.all()  # Fetch all factures
-    livreurs = Livreurs.objects.filter(user_type='livreur')  # Fetch only delivery persons
-    suppliers = supplier.objects.all()  # Fetch all suppliers
+    # Pour une requête GET, préparer les données pour le formulaire
+    factures = facture.objects.all()  # Récupérer toutes les factures
+    livreurs = Livreurs.objects.filter(user_type='livreur')  # Récupérer uniquement les livreurs
+    suppliers = supplier.objects.all()  # Récupérer tous les fournisseurs
 
-    # Debug data being sent to the template
+    # Debug : Affichage des données envoyées au template
     print("Rendering Add Retour Form")
     print(f"Factures: {factures}")
     print(f"Livreurs: {livreurs}")
@@ -333,11 +1084,8 @@ def add_retour(request):
 
 def get_commands(request, facture_id):
     try:
-        # Get the facture and its associated commands
         selected_facture = facture.objects.get(pk=facture_id)
         commands = selected_facture.commands.all()
-        
-        # Prepare the data for the response
         command_data = [
             {"id": command.id, "description": f"Command {command.id} - {command.shipping_address}"}
             for command in commands
@@ -359,48 +1107,110 @@ def get_commands(request, facture_id):
 
 
 def update_retour(request, retour_id):
-    retour_instance = get_object_or_404(retour, pk=retour_id)
-    old_quantite_retournee = retour_instance.quantite_retournee 
-    
-    if request.method == 'POST':
-        form = RetourForm(request.POST, instance=retour_instance)
-        if form.is_valid():
-            new_retour_instance = form.save(commit=False)
-            new_quantite_retournee = new_retour_instance.quantite_retournee 
+    try:
+        # Fetch the existing retour instance
+        retour_instance = get_object_or_404(retour, pk=retour_id)
+        facture_instance = retour_instance.facture
 
-            stock_instance = Stock.objects.get(item=new_retour_instance.produit, item_variant=new_retour_instance.variant)
+        if request.method == 'POST':
+            with transaction.atomic():
+                # Extract updated data from the form
+                selected_commands = request.POST.get('selected_commands', '[]')
+                supplier_id = request.POST.get('supplier')
+                raison_retour = request.POST.get('raison_retour')
+                date_retour = request.POST.get('date_retour')
+                livreur_id = request.POST.get('livreur')
+                informations_supp = request.POST.get('informations_supp')
 
-            difference = new_quantite_retournee - old_quantite_retournee
+                # Parse selected commands
+                try:
+                    selected_commands = json.loads(selected_commands)
+                    if isinstance(selected_commands, int):  # Handle single command case
+                        selected_commands = [selected_commands]
+                    elif not isinstance(selected_commands, list):
+                        raise ValueError("Invalid selected_commands format")
+                except json.JSONDecodeError:
+                    raise ValueError("Failed to parse selected_commands")
 
-            if difference > 0:
-                stock_instance.quantity_available += difference
-            elif difference < 0:
-                stock_instance.quantity_available += difference  
-            
-            stock_instance.save()
+                # Debugging the updated data
+                print(f"Updated Selected Commands: {selected_commands}")
+                print(f"Updated Supplier: {supplier_id}")
+                print(f"Updated Raison Retour: {raison_retour}")
+                print(f"Updated Date Retour: {date_retour}")
+                print(f"Updated Livreur: {livreur_id}")
+                print(f"Updated Informations Supp: {informations_supp}")
 
-            new_retour_instance.save()
+                # Update the retour instance
+                retour_instance.supplier = get_object_or_404(supplier, pk=supplier_id)
+                retour_instance.raison_retour = raison_retour
+                retour_instance.date_retour = date_retour
+                retour_instance.livreur = get_object_or_404(Livreurs, pk=livreur_id)
+                retour_instance.informations_supp = informations_supp
+                retour_instance.save()
 
-            return redirect('all_retour')
-    else:
-        form = RetourForm(instance=retour_instance)
-        
-        clients = customer.objects.all()  
-        suppliers = supplier.objects.all()  
-        produits = item.objects.all()  
-        variants = itemvariant.objects.all()  
-        livreurs = Delivery.objects.all() 
-        numero_cs = Command.objects.all()
+                # Adjust stock for previous commands
+                previous_commands = facture_instance.commands.all()
+                for command in previous_commands:
+                    for line in command.lines.all():
+                        product = line.product
+                        variant_combination = line.variant_combination
+                        quantity = line.quantity
 
-    return render(request, 'updateretour.html', {
-        'form': form,
-        'clients': clients,
-        'suppliers': suppliers,
-        'produits': produits,
-        'variants': variants,
-        'livreurs': livreurs,
-        'numero_cs': numero_cs,
-    })
+                        stock = Stock.objects.filter(item=product, variant_combination=variant_combination).first()
+                        if stock:
+                            stock.quantity_available -= quantity
+                            if stock.quantity_available < 0:
+                                stock.quantity_available = 0  # Ensure no negative stock
+                            stock.save()
+
+                # Process new selected commands
+                for command_id in selected_commands:
+                    command = get_object_or_404(Command, pk=command_id)
+
+                    for line in command.lines.all():
+                        product = line.product
+                        variant_combination = line.variant_combination
+                        quantity = line.quantity
+
+                        stock, created = Stock.objects.get_or_create(
+                            item=product,
+                            variant_combination=variant_combination,
+                            defaults={"quantity_available": 0}
+                        )
+                        stock.quantity_available += quantity
+                        stock.save()
+
+                print("Retour updated successfully!")
+                return redirect('all_retour')
+
+
+        # For GET request, prepare data for the form
+        factures = facture.objects.all()
+        livreurs = Livreurs.objects.filter(user_type='livreur')
+        suppliers = supplier.objects.all()
+        commands = facture_instance.commands.all()
+
+        # Prepare the current selected commands
+        selected_commands = [{"id": command.id, "description": f"Command {command.id} - {command.shipping_address}"} for command in commands]
+
+        # Debug the data sent to the template
+        print(f"Rendering Update Retour Form for Retour ID: {retour_id}")
+        print(f"Factures: {factures}")
+        print(f"Livreurs: {livreurs}")
+        print(f"Suppliers: {suppliers}")
+        print(f"Selected Commands: {selected_commands}")
+
+        return render(request, 'updateretour.html', {
+            'retour': retour_instance,
+            'factures': factures,
+            'livreurs': livreurs,
+            'suppliers': suppliers,
+            'commands': json.dumps(selected_commands),
+        })
+
+    except Exception as e:
+        print(f"Error updating retour: {str(e)}")
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
 
 
 
@@ -408,50 +1218,124 @@ def update_retour(request, retour_id):
 
 
 
-def delete_bonreception(request):
-    if request.method == 'POST':
-        delivery_id = request.POST.get('delivery_id')
-        bonreception_instance = get_object_or_404(bonreception, delivery=delivery_id)
-        bonreception_instance.delete()
+def delete_bonreception(request, delivery_id):
+    try:
+        with transaction.atomic():
+            # Fetch the bonreception instance
+            bon_reception = get_object_or_404(bonreception, pk=delivery_id)
+
+            # Iterate over related BonReceptionLine entries
+            for line in bon_reception.lines.all():
+                product = line.item
+                variant_combination = line.variant_combination
+                quantity = line.quantity
+
+                # Check if the product and variant combination have been sold
+                sold_command_lines = CommandLine.objects.filter(
+                    product=product,
+                    variant_combination=variant_combination
+                )
+                if sold_command_lines.exists():
+                    error_message = (
+                        f"Cannot delete reception note {delivery_id}. "
+                        f"Product '{product.product_name}' with variant combination "
+                        f"{variant_combination} has been sold."
+                    )
+                    messages.error(request, error_message)  # Send red alert message
+                    return redirect('all_bonreception')
+
+                # Adjust stock for this item-variant combination
+                stock = Stock.objects.filter(item=product, variant_combination=variant_combination).first()
+                if stock:
+                    stock.quantity_available -= quantity
+                    if stock.quantity_available < 0:
+                        stock.quantity_available = 0  # Ensure no negative stock
+                    stock.save()
+
+            # Delete all BonReceptionLine entries and the bonreception instance
+            bon_reception.delete()
+            success_message = f"Reception note {delivery_id} deleted successfully."
+            messages.success(request, success_message)  # Send green alert message
+            return redirect('all_bonreception')
+
+    except Exception as e:
+        messages.error(request, f"An unexpected error occurred: {str(e)}")
         return redirect('all_bonreception')
 
-    return render(request, 'delete_bonreception.html')
 
 
+def delete_retour(request, pk):
+    print(f"Received pk: {pk}")
+    try:
+        with transaction.atomic():
+            # Fetch the retour instance
+            retour_instance = get_object_or_404(retour, pk=pk)
+            facture_instance = retour_instance.facture  # Get associated facture
 
-def delete_retour(request):
-    form = RetourDeleteForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        retour_id = form.cleaned_data['retour_id']
-        retour_obj = get_object_or_404(retour, pk=retour_id)  
-        retour_obj.delete()
-        return redirect('all_retour') 
-    return render(request, 'delete_retour.html', {'form': form})
+            # Fetch commands linked to the facture
+            commands = facture_instance.commands.all()  # Use the many-to-many relationship
+
+            for command in commands:
+                # Iterate through command lines
+                for line in command.lines.all():
+                    product = line.product
+                    variant_combination = line.variant_combination
+                    quantity = line.quantity
+
+                    # Adjust stock for each command line
+                    stock = Stock.objects.filter(item=product, variant_combination=variant_combination).first()
+                    if stock:
+                        stock.quantity_available -= quantity
+                        stock.save()
+
+            # Delete the retour instance
+            retour_instance.delete()
+            return redirect('all_retour')
+
+    except retour.DoesNotExist:
+        print(f"Retour with ID {pk} does not exist.")
+        retours = retour.objects.select_related("supplier", "livreur", "facture__customer").all()
+        return render(
+            request,
+            'allretour.html',
+            {'retours': retours, 'error_message': f"Retour with ID {pk} does not exist."},
+        )
+
+
+           
+
+
 
 
 
 def search_return(request):
     if request.method == 'GET':
         searched = request.GET.get('searched', '')
+
+        # If there is a search term, filter the 'retour' objects based on the fields
         if searched:
             retours = retour.objects.filter(
-                Q(supplier__supplier_name__icontains=searched) |
-                Q(client__customer_name__icontains=searched) |
-                Q(produit__product_name__icontains=searched) |
-                Q(variant__variant_name__icontains=searched) |
-                Q(quantite_retournee__icontains=searched) |
-                Q(raison_retour__icontains=searched) |
-                Q(date_retour__icontains=searched) |
-                Q(livreur__icontains=searched) |
-                Q(informations_supp__icontains=searched) |
-                Q(numero_c__icontains=searched) |
-                Q(statut_retour__icontains=searched)
+                Q(supplier__supplier_name__icontains=searched) |  # Search by supplier name (adjust supplier_name field as per model)
+                Q(raison_retour__icontains=searched) |  # Search by return reason
+                Q(date_retour__icontains=searched) |  # Search by return date (as string)
+                Q(livreur__full_name__icontains=searched) |  # Search by livreur name (adjust livreur_name field as per model)
+                Q(informations_supp__icontains=searched) |  # Search by additional info
+                Q(facture__facture_id__icontains=searched) |  # Search by facture id (facture_id in facture model)
+                Q(facture__datef__icontains=searched) |  # Search by facture date (adjust datef field as per model)
+                Q(facture__addressf__icontains=searched) |  # Search by facture address (adjust addressf field as per model)
+                Q(facture__customer__customer_name__icontains=searched)  # Search by customer's name in facture (adjust customer_name field as per model)
             )
         else:
+            # If no search term, return all 'retour' objects
             retours = retour.objects.all()
+
+        # Render the search results page with the search term and results
         return render(request, 'search_return.html', {'retours': retours, 'searched': searched})
+
     else:
+        # If the request is not GET, render the empty search page
         return render(request, 'search_return.html', {})
+
     
                       
 
@@ -473,8 +1357,11 @@ def all_Details(request):
 
 def all_items(request):
     items = item.objects.all()
-    itemvariants = itemvariant.objects.all()
+    itemvariants = itemvariant.objects.all()  
+    for product in items:  
+        product.rowspan = product.itemvariant_set.count() + 1  
     return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+
 
 def supplier_list(request):
     suppliers = supplier.objects.all()
@@ -520,11 +1407,13 @@ def add_customer(request):
         contact_person = request.POST.get('contact_person')
         email = request.POST.get('email')
         phone_number = request.POST.get('phone_number')
+        customer_type= request.POST.get('customer_type')
         customer.objects.create(
             customer_name=customer_name,
             contact_person=contact_person,
             email=email,
-            phone_number=phone_number
+            phone_number=phone_number,
+            customer_type=customer_type
         )
         return redirect('allcustomers')
     return render(request, 'addcustomer.html')
@@ -537,13 +1426,11 @@ logger = logging.getLogger(__name__)
 def get_stock_levels(request):
     stocks = Stock.objects.select_related('item', 'item_variant').all()
     stock_data = []
-
     for stock in stocks:
         item_name = stock.item.product_name
-        variant_combination = stock.variant_combination  # This is already a dictionary
-        quantity = stock.quantity_available  # This is now an integer
+        variant_combination = stock.variant_combination  
+        quantity = stock.quantity_available  
 
-        # Prepare the stock entry
         stock_entry = {
             "item": item_name,
             "variant_combination": variant_combination,
@@ -605,64 +1492,134 @@ def search_lead(request):
 
     
     
-def delete_facture(request):
-    if request.method == 'POST':
-        facture_id = request.POST.get('facture_id')  
-        try:
-            fact = get_object_or_404(facture, pk=facture_id)  
-            fact.delete()  
-            return redirect('get_all_factures')  
-        except facture.DoesNotExist:
-            return render(request, 'deletefacture.html', {'error': 'Facture ID does not exist'})  
-    return render(request, 'deletefacture.html')  
+def delete_facture(request, facture_id):
+    try:
+        with transaction.atomic():
+            # Fetch the facture instance
+            facture_instance = get_object_or_404(facture, pk=facture_id)
+
+            # Delete the facture
+            facture_instance.delete()
+            print(f"Facture {facture_id} deleted successfully.")
+
+            return redirect('get_all_factures')
+    except facture.DoesNotExist:
+        print(f"Facture with ID {facture_id} does not exist.")
+        factures = facture.objects.all()
+        return render(request, 'allfactures.html', {
+            'factures': factures,
+            'error_message': f"Facture with ID {facture_id} does not exist."
+        })
+    except Exception as e:
+        print(f"Unexpected error occurred: {str(e)}")
+        return render(request, 'allfactures.html', {
+            'factures': facture.objects.all(),
+            'error_message': f"Unexpected error: {str(e)}"
+        })
    
    
+
+
+
+
 
 
 
 
 def update_facture(request, facture_id):
-    if request.method == "GET":
+    facture_instance = get_object_or_404(facture, pk=facture_id)
+    customers = customer.objects.all()
+    print("Customers:", customers)
+
+    if request.method == "POST":
         try:
-            # Fetch the facture instance
-            facture_instance = get_object_or_404(facture, pk=facture_id)
+            data = request.POST.copy()
+            customer_id = data.get("customer_id")
+            selected_command_ids = data.getlist("command")
 
-            # Fetch all customers
-            customers = customer.objects.all()
-            print("Customers Fetched:", customers)  # Debugging
+            if not customer_id or not selected_command_ids:
+                return render(request, "updatefacture.html", {
+                    "facture": facture_instance,
+                    "customers": customers,
+                    "error_message": "Customer and commands are required."
+                })
+            customer_instance = get_object_or_404(customer, pk=customer_id)
 
-            # Fetch related commands for the facture's customer
-            commands = Command.objects.filter(customer=facture_instance.customer)
-            print("Commands Fetched for Customer:", commands)  # Debugging
+            with transaction.atomic():
+                facture_instance.datef = data.get("datef")
+                facture_instance.addressf = data.get("addressf")
+                facture_instance.payment_method = data.get("Payment_Method")
+                facture_instance.tax = data.get("tax", 0)
+                facture_instance.discount = data.get("discount", 0)
+                facture_instance.ttc = data.get("TTC", 0)
+                facture_instance.customer = customer_instance
+                facture_instance.save()
 
-            # Fetch selected commands associated with this facture
-            selected_command_ids = list(facture_instance.commands.values_list('id', flat=True))
-            print("Selected Commands for Facture:", selected_command_ids)  # Debugging
+                selected_commands = Command.objects.filter(pk__in=selected_command_ids)
+                facture_instance.commands.set(selected_commands)
 
-            # Pass the data to the response
-            return JsonResponse({
-                "success": True,
-                "facture": {
-                    "id": facture_instance.facture_id,
-                    "customer": facture_instance.customer.customer,  # Selected customer ID
-                    "selected_commands": selected_command_ids,  # Pre-selected commands
-                },
-                "customers": list(customers.values("customer", "customer_name")),  # Include customer data
-                "commands": [{"id": cmd.id, "label": str(cmd)} for cmd in commands],  # Use __str__() for label
-            })
+            return redirect("get_all_factures")
+
         except Exception as e:
-            print("Error rendering update facture form:", e)
-            return JsonResponse({"success": False, "message": "An unexpected error occurred while rendering the form."})
+            print("Error updating facture:", e)
+            print("Error updating facture:", e)
+            return render(request, "updatefacture.html", {
+                "facture": facture_instance,
+                "customers": customers,
+                "error_message": "An unexpected error occurred. Please try again."
+            })
+            
+    return render(request, "updatefacture.html", {
+        "facture": facture_instance,
+        "customers": customers,
+    })
+
+
+
+
+def get_commands_by_customer(request, customer_id):
+    try:
+        # Debug: Log customer ID from request
+        print(f"Customer ID received by get command function: {customer_id}")
+        
+        # Get the customer instance
+        customer_instance = get_object_or_404(customer, pk=customer_id)
+        print(f"Customer instance fetched  by get command function: {customer_instance}")
+        
+        # Fetch commands for the given customer
+        commands = Command.objects.filter(customer=customer_instance)
+        print(f"Commands fetched for customer  by get command function {customer_id}: {commands}")
+        
+        # Serialize command data
+        command_data = [
+            {"id": command.id, "label": f"Command {command.id} - {command.shipping_address}"}
+            for command in commands
+        ]
+        print(f"Serialized command data: by get command function {command_data}")
+        
+        # Return JSON response
+        return JsonResponse({"success": True, "commands": command_data})
+    
+    except customer.DoesNotExist:
+        print("Error  by get command function: Customer not found.")
+        return JsonResponse({"success": False, "message": "Customer not found."}, status=404)
+    
+    except Exception as e:
+        print(f"Error in get_commands_by_customer  : {e}")
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+
+
+
+
+
+
 
 
 
 
     
     
-    
-def get_variants(request, item):
-    variants = itemvariant.objects.filter(item_id=item).values('id', 'variant_values')
-    return JsonResponse({"variants": list(variants)})
 
 
 
@@ -699,18 +1656,17 @@ def search_facture(request):
         searched = request.GET.get('searched', '')
         if searched:
             factures = facture.objects.filter(
-                Q(datef__icontains=searched) |
-                Q(addressf__icontains=searched) |
-                Q(tax__icontains=searched) |
-                Q(discount__icontains=searched) |
-                Q(payment_method__icontains=searched) |
-                Q(qte_facture__icontains=searched) |
-                Q(ttc__icontains=searched) |
-                Q(product__product_name__icontains=searched) |
-                Q(price__icontains=searched) |
-                Q(variant__variant_name__icontains=searched) |
-                Q(customer__customer_name__icontains=searched)
-            )
+                Q(facture_id__icontains=searched) |  # Search by facture ID
+                Q(datef__icontains=searched) |  # Search by facture date
+                Q(addressf__icontains=searched) |  # Search by address
+                Q(tax__icontains=searched) |  # Search by tax
+                Q(discount__icontains=searched) |  # Search by discount
+                Q(calculated_total__icontains=searched) |  # Search by calculated total
+                Q(ttc__icontains=searched) |  # Search by total TTC
+                Q(payment_method__icontains=searched) |  # Search by payment method
+                Q(customer__customer_name__icontains=searched) |  # Search by customer name
+                Q(commands__id__icontains=searched)  # Search by related commands name
+            ).distinct()  # Use distinct() to avoid duplicate results from ManyToMany relationships
         else:
             factures = facture.objects.all()
         return render(request, 'search_facture.html', {'factures': factures, 'searched': searched})
@@ -769,22 +1725,22 @@ def process_commands_and_calculate_total(commands, customer_type):
 def add_facture(request):
     if request.method == "POST":
         try:
-            # Extract data from the POST request
             data = request.POST.copy()
             customer_id = data.get("customer_id")
             selected_command_ids = data.getlist("command")
 
-            # Validate required fields
             if not customer_id or not selected_command_ids:
                 return JsonResponse({"success": False, "message": "Customer and commands are required."})
 
-            # Get the customer instance
+            print("POST Request - Customer ID:", customer_id)
+            print("POST Request - Selected Commands:", selected_command_ids)
+
             customer_instance = get_object_or_404(customer, pk=customer_id)
 
-            # Fetch the selected commands
             selected_commands = Command.objects.filter(pk__in=selected_command_ids)
 
-            # Create a new facture
+            print("Fetched Commands for POST:", selected_commands)
+
             with transaction.atomic():
                 new_facture = facture.objects.create(
                     datef=data.get("datef"),
@@ -808,17 +1764,27 @@ def add_facture(request):
     elif request.method == "GET" and "customer_id" in request.GET:
         # Fetch commands dynamically for a specific customer
         customer_id = request.GET.get("customer_id")
+
         try:
+            print("GET Request - Customer ID:", customer_id)
+
+            # Fetch commands related to the customer
             commands = Command.objects.filter(customer_id=customer_id)
+
+            print("Fetched Commands for GET:", commands)
+
             commands_data = [{"id": cmd.pk, "label": f"Command {cmd.pk}"} for cmd in commands]
+
             return JsonResponse({"success": True, "commands": commands_data})
         except Exception as e:
             print("Error fetching commands:", e)
             return JsonResponse({"success": False, "message": str(e)})
 
     else:
-        # Render the form for adding a facture
         customers = customer.objects.all()
+
+        print("Rendering Form - Available Customers:", customers)
+
         return render(request, "add_facture.html", {
             "form": FactureForm(),
             "customers": customers,
@@ -919,14 +1885,7 @@ def search_leaddata(request):
         return render(request, 'searchleaddata.html', {})
 
 
-def product_delete(request):
-    form = ItemDeleteForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        item_id = form.cleaned_data['item_id']
-        item_obj = get_object_or_404(item, pk=item_id)
-        item_obj.delete()
-        return redirect('all_items')
-    return render(request, 'deleteproduct.html', {'form': form})
+
 
 
 def delete_supplier(request):
@@ -947,14 +1906,78 @@ def delete_supplier(request):
     print("Template is being rendered")
     return render(request, 'deletesupplier.html', {'form': form})
 
-def variant_delete(request):
-    form = VariantDeleteForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        variant_id = form.cleaned_data['variant_id']
-        variant_obj = get_object_or_404(itemvariant, pk=variant_id)
-        variant_obj.delete()
+def variant_delete(request, variant_id):
+    try:
+        variant = itemvariant.objects.get(variant_id=variant_id)
+        variant.delete()
         return redirect('all_items')
-    return render(request, 'deletevariant.html', {'form': form})
+    except itemvariant.DoesNotExist:
+        return redirect(request, 'variant_not_found.html', {'variant_id': variant_id})
+    
+
+def product_delete(request, item_id):
+    try:
+        product = item.objects.get(item=item_id)  
+        product.delete() 
+        return redirect('all_items')  
+    except item.DoesNotExist:  
+        return render(request, 'item_not_found.html', {'item_id': item_id})
+ 
+
+
+
+def delete_delivery(request, delivery_id):
+    try:
+        delivery = Delivery.objects.get(delivery_id=delivery_id)
+        delivery.delete()
+        return redirect('get_delivery')
+    except Delivery.DoesNotExist:
+        return render(request, 'delivery_not_found.html', {'delivery_id': delivery_id})
+
+
+
+def delete_command(request, pk):
+    print(f"Received Command ID: {pk}")
+    try:
+        with transaction.atomic():
+            # Fetch the command instance
+            command_instance = get_object_or_404(Command, pk=pk)
+            
+            # Iterate over command lines to adjust stock
+            for line in command_instance.lines.all():
+                product = line.product
+                variant_combination = line.variant_combination
+                quantity = line.quantity
+
+                # Adjust stock
+                stock = Stock.objects.filter(item=product, variant_combination=variant_combination).first()
+                if stock:
+                    stock.quantity_available += quantity
+                    stock.save()
+                    print(f"Stock updated for product: {product.product_name} with combination {variant_combination}. New quantity: {stock.quantity_available}")
+                else:
+                    print(f"No stock found for product: {product.product_name} with combination {variant_combination}. Skipping adjustment.")
+
+            # Delete all related command lines
+            command_instance.lines.all().delete()
+            print(f"Command lines for Command ID {pk} deleted.")
+
+            # Delete the command itself
+            command_instance.delete()
+            print(f"Command ID {pk} deleted successfully.")
+
+            return redirect('get_command')
+
+    except Command.DoesNotExist:
+        print(f"Command with ID {pk} does not exist.")
+        return render(request, "commands.html", {
+            "error_message": f"Command with ID {pk} does not exist.",
+            "commands": Command.objects.all(),
+        })
+    except Exception as e:
+        print(f"Unexpected error occurred: {str(e)}")
+        return JsonResponse({"success": False, "message": str(e)})
+
 
 
 def add_item(request):
@@ -1106,13 +2129,15 @@ def reception(request):
     return render(request,"reception.html")
 
 def home(request):
-    unread_count = Notification.objects.filter(is_read=False).count()
-    unread_notifications = Notification.objects.filter(is_read=False)
+    unread_notifications = Notification.objects.filter(user=request.user, is_read=False)
+    unread_count = unread_notifications.count()
     print(f"Unread Count: {unread_count}")  # Debugging line
     print(f"Unread Notifications: {unread_notifications}")  # Debugging line
-    context = {'unread_count': unread_count,'unread_notifications': unread_notifications,}
-    
-    return render(request,"home.html", context)
+    context = {
+        'unread_count': unread_count,
+        'unread_notifications': unread_notifications,
+    }
+    return render(request, "home.html", context)
 
 def livreur(request):
     return render(request,"livreur.html")
@@ -1242,23 +2267,7 @@ def add_delivery(request):
     return render(request, 'add_delivery.html', {'Livreurss': Livreurss})
 
 
-def delete_delivery(request, delivery_id):
-    try:
-        delivery = Delivery.objects.get(delivery_id=delivery_id)
-        delivery.delete()
-        return redirect('get_delivery')
-    except Delivery.DoesNotExist:
-        return render(request, 'delivery_not_found.html', {'delivery_id': delivery_id})
 
-
-
-def delete_command(request, Command_id):
-    try:
-        command = Command.objects.get(Command_id=Command_id)
-        command.delete()
-        return redirect('get_command')
-    except Command.DoesNotExist:
-        return redirect(request,'get_command', {'Command_id': Command_id})
 
 
 def update_delivery(request, delivery_id):
@@ -1299,7 +2308,6 @@ def search_delivery(request):
 
 
 
-from django.http import JsonResponse
 
 def add_command(request):
     if request.method == "POST":
@@ -1385,8 +2393,9 @@ def _get_variant_data():
 
 
 
+
 def get_command(request):
-    commands = Command.objects.prefetch_related("lines").all()
+    commands = Command.objects.prefetch_related("lines").order_by('-id')
     return render(request, "command_detail.html", {"commands": commands})
 
 
@@ -1523,18 +2532,31 @@ def update_command(request, pk):
 def search_command(request):
     if request.method == 'GET':
         searched = request.GET.get('searched', '')
+        commands = Command.objects.all()
+        command_lines = CommandLine.objects.all()
+
         if searched:
+            # Filter Commands
             commands = Command.objects.filter(
                 Q(customer__customer_name__icontains=searched) |
                 Q(order_date__icontains=searched) |
                 Q(total_amount__icontains=searched) |
-                Q(statu__icontains=searched) |
                 Q(shipping_address__icontains=searched) |
                 Q(delivery__company_name__icontains=searched)
             )
-        else:
-            commands = Command.objects.all()
-        return render(request, 'search_command.html', {'commands': commands, 'searched': searched})
+
+            # Filter CommandLines
+            command_lines = CommandLine.objects.filter(
+                Q(product__product_name__icontains=searched) |
+                Q(variant_combination__icontains=searched) |
+                Q(command__customer__customer_name__icontains=searched)
+            )
+
+        return render(
+            request, 
+            'search_command.html', 
+            {'commands': commands, 'command_lines': command_lines, 'searched': searched}
+        )
     else:
         return render(request, 'search_command.html', {})
 
@@ -1558,13 +2580,13 @@ def login_view(request):
                 
                 if user.user_type == 'livreur':
                     print("Redirecting to livreur page")
-                    return redirect('livreur')  # Redirect to Livreurs page
+                    return redirect('livreur') 
                 elif user.user_type == 'admin':
                     print("Redirecting to admin page")
-                    return redirect('admin')  # Redirect to Admin page
+                    return redirect('admin') 
                 else:
                     print("Redirecting to home page")
-                    return redirect('home')  # Default for CustomUser
+                    return redirect('home') 
             else:
                 return render(request, 'login.html', {'form': form, 'error_message': 'Invalid username or password'})
     else:
@@ -1703,51 +2725,93 @@ def add_note(request):
     customers = customer.objects.all()
     commands = Command.objects.all()
 
-    if request.method == 'POST':
+    # Si la requête est GET et qu'il y a un 'customer_id' dans l'URL, on renvoie les commandes pour ce client
+    if request.method == 'GET' and request.GET.get('customer_id'):
+        customer_id = request.GET.get('customer_id')
+        try:
+            print("GET Request - Customer ID:", customer_id)
+
+            customer_instance = get_object_or_404(customer, pk=customer_id)
+
+            commands_for_customer = Command.objects.filter(customer=customer_instance)
+
+            print("Fetched Commands for GET:", commands_for_customer)
+
+            command_list = [{"id": command.id, "label": f"Command {command.id}"} for command in commands_for_customer]
+
+            return JsonResponse({"success": True, "commands": command_list})
+        
+        except Customer.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Customer not found"})
+
+   
+    elif request.method == 'POST':
         customer_id = request.POST.get('customer_id')
-        command_id = request.POST.get('command')
+        command_id = request.POST.get('command_id')
         note_text = request.POST.get('note')
 
+       
         customer_instance = get_object_or_404(customer, pk=customer_id)
         command_instance = get_object_or_404(Command, pk=command_id)
 
+        
         Note.objects.create(customer=customer_instance, command=command_instance, note=note_text)
 
         return redirect('all_notes')  
 
     return render(request, 'addnote.html', {'customers': customers, 'commands': commands})
 
+
+
+
 def all_notes(request):
     notes = Note.objects.all()
     return render(request, 'all_notes.html', {'notes': notes})
 
 
-def edit_note(request, note_id):
-    note = get_object_or_404(Note, pk=note_id) 
+def edit_note(request, note_id=None):
     customers = customer.objects.all()
-    commands = Command.objects.all()
 
-    if request.method == 'POST':
+    if request.method == 'GET' and request.GET.get('customer_id'):
+        customer_id = request.GET.get('customer_id')
+        try:
+            customer_instance = get_object_or_404(customer, pk=customer_id)
+            commands_for_customer = Command.objects.filter(customer=customer_instance)
+            command_list = [{"id": command.id, "label": f"Commande {command.id}"} for command in commands_for_customer]
+
+            # Retourner les commandes sous forme de JSON
+            return JsonResponse({"success": True, "commands": command_list})
+
+        except Customer.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Client non trouvé"})
+
+    elif request.method == 'POST':
+        # Récupérer les données envoyées
         customer_id = request.POST.get('customer_id')
         command_id = request.POST.get('command')
         note_text = request.POST.get('note')
 
-        customer = get_object_or_404(customer, pk=customer_id)
-        command = get_object_or_404(Command, pk=command_id)
+        # Récupérer le client et la commande associés à partir des IDs
+        customer_instance = get_object_or_404(Customer, pk=customer_id)
+        command_instance = get_object_or_404(Command, pk=command_id)
 
-        note.customer = customer
-        note.command = command
-        note.note = note_text
-        note.save()
+        # Créer ou mettre à jour la note
+        note = Note.objects.create(customer=customer_instance, command=command_instance, note=note_text)
 
-        return redirect('all_notes') 
+        # Rediriger après l'édition
+        return redirect('all_notes')  
 
-    return render(request, 'edit_note.html', {'note': note,'customers': customers,'commands': commands,})
+    return render(request, 'edit_note.html', {
+        'customers': customers,
+    })
+
+
+
     
     
 def delete_note(request, note_id):
     try:
-        note = Note.objects.get(id=note_id) 
+        note = Note.objects.get(note_id=note_id) 
         note.delete()
         return redirect('all_notes')  
     except Note.DoesNotExist:
@@ -1772,14 +2836,103 @@ def search_note(request):
     
     
     
+def check_stock_and_notify():
+    low_stock_instances = Stock.objects.filter(quantity_available__lt=10)
+    for low_stock in low_stock_instances:
+        if low_stock.item_variant:
+            variant_details = f"{low_stock.item_variant.variant_name}: {', '.join(low_stock.item_variant.variant_values)}"
+        else:
+            variant_details = "No variants specified"
+        print(
+            f"Processing Stock: {low_stock.item.product_name} - {variant_details}, Quantity: {low_stock.quantity_available}"
+        )
+    for low_stock in low_stock_instances:
+        print(f"Processing Stock: {low_stock.item.product_name} - {low_stock.variant_combination}, Quantity: {low_stock.quantity_available}")
+        users_to_notify = customuser.objects.filter(user_type__in=['admin', 'customuser'])
+        for user in users_to_notify:
+            notification, created = Notification.objects.get_or_create(
+                user=user,
+                stock=low_stock,  
+                defaults={
+                    "message": f"Stock low for {low_stock.item.product_name} - {low_stock.variant_combination}. Only {low_stock.quantity_available} left.",
+                    "is_read": False,
+                }
+            )
+            if not created:
+                notification.stock = low_stock
+                notification.save()
+            print(f"Notification created or updated for user {user.username} with Stock ID: {low_stock.id}")
+
+
+
+
+    
+
+ 
+    
+@csrf_exempt
+@login_required
+def mark_notifications_read(request):
+    if request.method == 'POST':
+        unread_notifications = Notification.objects.filter(user=request.user, is_read=False)
+        unread_notifications.update(is_read=True)
+        return JsonResponse({
+            'success': True,
+            'message': 'Notifications marked as read'
+        })
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+
+
+def notification_detail(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    stock = notification.stock  
+    
+    if not stock:
+        return render(request, 'notification_detail.html', {
+            'notification': notification,
+            'stock': None,
+            'error': 'Stock information is not available for this notification.'
+        })
+
+    if isinstance(stock.variant_combination, str):
+        stock.variant_combination = json.loads(stock.variant_combination)
+    
+    print(type(stock.variant_combination), stock.variant_combination)  
+
+    context = {
+        'notification': notification,
+        'stock': stock,
+    }
+    return render(request, 'notification_detail.html', context)
+
 
 @login_required
-def notification_list(request):
-    notifications = request.user.notifications.filter(is_read=False)
-    unread_count = notifications.count()  
-    return render(request, 'home.html', {'unread_count': unread_count,'unread_notifications': notifications})
 
-def notification_view(request):
+
+
+def notification_list(request):
     notifications = Notification.objects.all()
-    return render(request, 'notification_page.html', {'notifications': notifications})
+    notification_data = []
+    for notification in notifications:
+        notification_data.append({
+            "message": notification.message,
+            "is_read": "Read" if notification.is_read else "Unread",
+            "created_at": notification.created_at,
+        })
+
+    paginator = Paginator(notification_data, 10)
+    page_number = request.GET.get('page', 1)
+    paginated_notifications = paginator.get_page(page_number)
+
+    return render(request, 'notification_page.html', {
+        'notifications': paginated_notifications,
+        'unread_count': Notification.objects.filter(is_read=False).count(),
+    })
+
+
+
+
+
+
 

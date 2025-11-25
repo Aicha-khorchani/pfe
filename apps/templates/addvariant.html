@@ -30,14 +30,47 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
-                    </li></ul>
-                <form class="d-flex" method="GET" action="{% url 'search_itemvariant' %}">
-                    {% csrf_token %}
-                    <input type="search"  name="searched" id="searched" class="form-control me-2"  placeholder="Search product variant...">
-                    <button class="search-button btn btn-primary" type="submit" >Search</button>
-                </form>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
                 <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
-            </div> </div>
+            </div>
+        </div>
     </nav>
     <!----------------------- Main Container -------------------------->
      <div class="container d-flex justify-content-center align-items-center min-vh-100">

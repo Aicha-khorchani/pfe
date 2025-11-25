@@ -172,7 +172,13 @@ class customuserCreationForm(StyledForm):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
         return password2
-
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password1'])  
+        if commit:
+            user.save()
+        return user
 
 class CustomUserChangeForm(StyledForm, UserChangeForm):
     full_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'full name', 'id': 'user_name'}), label='')
@@ -206,6 +212,12 @@ class BonReceptionLineForm(forms.ModelForm):
         if not item:
             raise forms.ValidationError("This field is required.")
         return item        
+    
+    def clean_variant_combination(self):
+        data = self.cleaned_data.get('variant_combination')
+        if not data:
+            raise forms.ValidationError("This field is required.")
+        return data
 
 
 BonReceptionLineFormSet = inlineformset_factory(
@@ -367,7 +379,7 @@ class UpdateSupplierForm(StyledForm):
 class UpdatecustomerForm(StyledForm):
     class Meta:
         model = customer
-        fields = ['customer','customer_name','contact_person','email','phone_number']
+        fields = ['customer','customer_name','contact_person','email','phone_number','customer_type']
 
 
 class itemForm(StyledForm):

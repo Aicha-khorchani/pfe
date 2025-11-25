@@ -1,15 +1,15 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-        <link rel="stylesheet" href="{% static 'styles.css' %}">
-        <title>COM ARKEYEZ | return note</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | Return Notes</title>
+</head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
@@ -32,137 +32,224 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'logout_view' %}"> Logout</a>
-            </li>
-        </ul>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
     </nav>
-<!----------------------- Main Container -------------------------->
-<div class="container mt-5">
 
-    <h3 class="text-center mb-4">The List of All ruturns</h3>
-        
-                <div class="search-container">
-                    <form class="d-flex" method="GET" action="{% url 'search_return' %}"> 
-                        {% csrf_token %}
-                        <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" placeholder="Search return...">
-                        <button class="search-button btn btn-primary" type="submit">Search</button>
-                    </form>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>id</th>
-                                <th>supplier</th>
-                                <th>Client</th>
-                                <th>Product</th>
-                                <th>variant</th>
-                                <th>Quantité</th>
-                                <th>Raison</th>
-                                <th>Date</th>
-                                <th>Livreur</th>
-                                <th>Info</th>
-                                <th>Numéro</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for retour in retours %}
-                            <tr>
-                                <td>{{ retour.retour }}</td>
-                                <td>{{ retour.supplier.supplier_name }}</td> 
-                                <td>{{ retour.client.customer_name }}</td>
-                                <td>{{ retour.produit.product_name }}</td>
-                                <td>{{ retour.variant.variant_name }}</td>
-                                <td>{{ retour.quantite_retournee }}</td>
-                                <td>{{ retour.raison_retour }}</td>
-                                <td>{{ retour.date_retour }}</td>
-                                <td>{{ retour.livreur }}</td>
-                                <td>{{ retour.informations_supp }}</td>
-                                <td>{{ retour.numero_c.Command_id }}</td>
-                                <td>{{ retour.statut_retour }}</td>
-                                <td><a href="{% url 'update_retour' retour.retour %}"> 
-                                    <button class="btn btn-sm btn-custom">Edit</button>
-                                </a></td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="13" class="text-center">No return.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="input-group mb-3 d-flex justify-content-center">
-                <a href="{% url 'delete_retour' %}" class="btn btn-sm btn-danger">
-                    <i class="fas fa-trash"></i>Delete return note
-                </a>
-            </div>
-        </div> 
+
+    <div class="container mt-5">
+        <!-- Search and Button Container -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-center mb-4">List of All Returns</h3>
+            <a href="{% url 'returns_and_losses_page' %}">
+                <button class="btn btn-primary" style="min-width: 50px;">Return and Losses Dashboard</button>
+            </a>
+            <form class="d-flex ms-3" method="GET" action="{% url 'search_return' %}">
+                {% csrf_token %}
+                <input type="search" aria-label="Search" name="searched" id="searched" class="form-control me-2" placeholder="Search return...">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </form>
+        </div>
+    
+
+    <!-- Table                              <table class="table table-bordered">  -->
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover w-auto">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Supplier</th>
+                    <th>Customer</th>
+                    <th>Reason</th>
+                    <th>Date</th>
+                    <th>Delivery Person</th>
+                    <th>Additional Info</th>
+                    <th>Facture</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for retour in retours %}
+                <tr>
+                    <td>{{ retour.retour }}</td>
+                    <td>{{ retour.supplier.supplier_name|default:"-" }}</td>
+                    <td>{{ retour.facture.customer.customer_name|default:"-" }}</td>
+                    <td>{{ retour.raison_retour|default:"-" }}</td>
+                    <td>{{ retour.date_retour|date:"F j, Y" }}</td>
+                    <td>{{ retour.livreur.full_name|default:"-" }}</td>
+                    <td>{{ retour.informations_supp|default:"-" }}</td>
+                    <td>{{ retour.facture.facture_id }}</td>
+                    <td>
+                        <div class="d-flex justify-content-center action-buttons">
+                            <a href="{% url 'update_retour' retour.retour %}">
+                                <button class="btn btn-edit-product">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </a>
+                            <a href="{% url 'delete_retour' retour.retour %}" onclick="return confirm('Are you sure you want to delete this return?')">
+                                <button class="btn btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </a>
+                            <a href="{% url 'add_retour' %}">
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No returns available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    </div>
+    <div class="container mt-3">
+        {% if error_message %}
+        <div class="alert alert-danger text-center" role="alert">
+            {{ error_message }}
+        </div>
+        {% endif %}
+    </div>
+    
+ 
+</div>
 
-    <footer class="mt-5 bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>About Us</h5>
-                    <p>ARKEYEZ is a startup offering ERP and CRM solutions to streamline work, making it digital and efficient.</p>
-                    <div>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-linkedin"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-youtube"></i></a>
-                        <a href="#" class="text-white"><i class="fa-solid fa-envelope"></i></a>
-                    </div>
+<footer class="mt-5 bg-dark text-white py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>About Us</h5>
+                <p>ARKEYEZ is a startup offering ERP and CRM solutions to streamline work, making it digital and efficient.</p>
+                <div>
+                    <a href="#" class="text-white me-3"><i class="fa-brands fa-linkedin"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#" class="text-white"><i class="fa-solid fa-envelope"></i></a>
                 </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-white">About</a></li>
-                        <li><a href="#" class="text-white">Privacy Policy</a></li>
-                        <li><a href="#" class="text-white">Help</a></li>
-                        <li><a href="#" class="text-white">Terms & Conditions</a></li>
-                        <li><a href="#" class="text-white">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contact Us</h5>
-                    <ul class="list-unstyled">
-                        <li><i class="fa fa-map-marker me-2"></i>Tunisia, Tataouine Nord, Cyber Park 3200</li>
-                        <li><i class="fa fa-phone me-2"></i><a href="tel:20 890 113" class="text-white">20 890 113</a></li>
-                        <li><i class="fa fa-envelope me-2"></i><a href="mailto:info@arkeyes.com" class="text-white">info@arkeyes.com</a></li>
-                    </ul>
-                </div>
+            </div>
+            <div class="col-md-4">
+                <h5>Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white">About</a></li>
+                    <li><a href="#" class="text-white">Privacy Policy</a></li>
+                    <li><a href="#" class="text-white">Help</a></li>
+                    <li><a href="#" class="text-white">Terms & Conditions</a></li>
+                    <li><a href="#" class="text-white">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5>Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fa fa-map-marker me-2"></i>Tunisia, Tataouine Nord, Cyber Park 3200</li>
+                    <li><i class="fa fa-phone me-2"></i><a href="tel:20 890 113" class="text-white">20 890 113</a></li>
+                    <li><i class="fa fa-envelope me-2"></i><a href="mailto:info@arkeyes.com" class="text-white">info@arkeyes.com</a></li>
+                </ul>
             </div>
         </div>
-    </footer>
-    <div class="text-center text-white bg-dark py-2">
-        <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
     </div>
+</footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+<div class="text-center text-white bg-dark py-2">
+    <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
-    <style>
-        .btn-custom {
-            background-color: #007bff;
-            color: white;
-            border: none;
+<style>
+    .action-buttons a {
+        margin: 0 2px; /* Small space between buttons */
+    }
+    .action-buttons {
+        padding: 0 !important; /* Remove any padding from the container */
+        margin: 0 !important; /* Remove margin to prevent excessive space */
+        display: flex; /* Ensure correct layout */
+        display: flex;
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: center; /* Optional: Center the buttons horizontally */
+        gap: 5px; /* Space between buttons */
+    }
+
+    .action-buttons button {
+        font-size: 12px !important;
+        padding: 2px 4px !important;
+        height: 30px !important;
+        width: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        min-width: 0 !important; /* Remove min-width */
+        max-width: none !important; /* Prevent max-width constraint */
+    }
+    
+    .action-buttons i {
+        font-size: 14px !important; /* Ensure icon size is adjusted */
+    }
+        .container {
+            max-width: 1200px; /* Adjust as needed */
         }
-
-        .btn-custom:hover {
-            background-color: #0056b3;
+        table {
+            width: auto !important;
         }
+   
+    
+    .btn-custom {
+        background-color: #007bff;
+        color: white;
+        border: none;
+    }
 
-        /* For smaller buttons */
-        .btn-sm {
-            font-size: 12px;
-            padding: 0.25rem 0.5rem;
-        }
-    </style>
+    .btn-custom:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-sm {
+        font-size: 12px;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
 </body>
 </html>

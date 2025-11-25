@@ -13,31 +13,66 @@
     <title>COM ARKEYEZ | accounts</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light" style="background: #103cbe;">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <a class="navbar-brand" >ARKEYEZ</a>
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                <li class="nav-item text-dark font-weight-bold">
-                <a href="{% url 'logout_view' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> logout </button></a>
-            </li> <span> </span >
-            <li class="nav-item text-dark font-weight-bold">
-                <a href="{% url 'home' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> Home </button> </a>
-            </li>
-            <li class="nav-item text-dark font-weight-bold">
-             <a href="{% url 'stock' %}" > <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom me-10" style="min-width: 75x;"> stock </button></a>
-         </li> <span> </span >
-         <li class="nav-item text-dark font-weight-bold">
-             <a href="{% url 'doc' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> documents </button> </a>
-         </li>
-         <li class="nav-item text-dark font-weight-bold">
-          <a href="{% url 'partners' %}"> <button class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 75x;"> partners </button> </a>
-      </li>
-        </ul>
-
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
+        </div>
     </nav>
   <!----------------------- Main Container -------------------------->
   <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">

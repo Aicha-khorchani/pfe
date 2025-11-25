@@ -1,0 +1,474 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <!--FontAwesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+        integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+
+<!-- Bootstrap and Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+
+    <!--Custome CSS-->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | return and losses dashboard</title>
+
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+</head>
+            <!-- header seperater  -->
+
+
+
+
+
+
+
+<body>    
+        <div class="row mt-4 align-items-stretch">
+
+            <!-- New Card (General Returns Information) -->
+            <div class="col-md-5 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info text-white">
+                        <h4>General Returns Information</h4>
+                    </div>
+                    <div class="card-body" style="background-color: #f0f0f0;" id="generalInfoContainer"> 
+                    </div>                    
+                </div>
+            </div>
+
+   
+    
+
+    
+            <!-- Home Card -->
+            <div class="col-md-7 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-header bg-info text-white">
+                        Home
+                    </div>
+                    <div class="card-body" style="background-color: #CCCCFF;">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a class="text-decoration-none text-dark" href="{% url 'partners' %}" data-toggle="tooltip" title="Total active partners in the system">
+                                    <div class="card-body" style="background-color: rgba(255, 99, 132, 1); color: white; padding: 20px; text-align: center;">
+                                        <h4>Partners <i class="fas fa-users"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a class="text-decoration-none text-dark" href="{% url 'doc' %}" data-toggle="tooltip" title="manage invoice reception and return notes" >
+                                    <div class="card-body" style="background-color: rgba(54, 162, 235, 1); color: white; padding: 20px; text-align: center;">
+                                        <h4>Documents <i class="fas fa-box"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a class="text-decoration-none text-dark" href="{% url 'stock' %}" data-toggle="tooltip" title="check stock availability and manage products cathalogue">
+                                    <div class="card-body" style="background-color: rgba(75, 192, 192, 1); color: white; padding: 20px; text-align: center;">
+                                        <h4>Stock <i class="fas fa-shipping-fast"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                                <marquee behavior="" direction="">
+                                    <h3 class="my-4" style="color: black;">go digital with Arkeyez ERP return and losses dashboard</h3>
+                                </marquee>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+
+
+
+
+
+        <div class="container-fluid mt-1 d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+            <div class="row g-1 border rounded-5 p-2 bg-white shadow box-area" style="width: 100%;">
+
+                <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background-color: #f0f0f0;" height: "40vh;">
+                    <canvas id="returnsBySupplierChart"></canvas>
+                <h4 class="text-dark mt-2">Supplier with the Most Return</h4>
+            </div>
+    
+            <div class="col-md-6 d-flex justify-content-center align-items-center flex-column" style="height: 40vh;">
+                <canvas id="monthlyReturnsChart"></canvas>
+                <h4 class="text-dark mt-2">monthly returns chart</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card bg-white">
+                <div class="card-header bg-info text-white">
+                    <h4>monthly returns by customer</h4>
+                </div>
+                <div class="card-body text-center">
+                        <canvas id="monthlyReturnsByCustomerChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-white">
+                <div class="card-header bg-info text-white">
+                    <h4>monthly returns by delivery</h4>
+                </div>
+                <div class="card-body text-center">
+                        <canvas id="monthlyReturnsByLivreurChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-white">
+                <div class="card-header bg-info text-white">
+                    <h4>monthly returns by Item </h4>
+                </div>
+                <div class="card-body text-center">
+                        <canvas id="monthlyReturnsByItemChart"></canvas>
+                    </div>
+            </div>
+        </div>
+    </div>
+    
+
+
+
+
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Starting to fetch data...");
+    
+            fetch('returns_and_losses_dashboard')
+                .then(response => {
+                    console.log('Response received:', response);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data fetched:', data);  // Debug: Log the fetched data to inspect its structure
+    
+                    const chartColors = [
+                    'rgba(255, 99, 132, 1)', // Red
+                    'rgba(54, 162, 235, 1)', // Blue
+                    'rgba(255, 206, 86, 1)', // Yellow
+                    'rgba(75, 192, 192, 1)', // Green
+                    'rgba(153, 102, 255, 1)', // Purple
+                    'rgba(255, 159, 64, 1)'  // Orange
+                ];
+
+                    // Debug: Log the general_info object
+                    console.log('General Info:', data.general_info);
+    
+                    // General Info Rendering
+                    if (data.most_returned_item && data.supplier_with_most_returns && data.livreur_with_most_returns && data.customer_with_most_returns) {
+                        const generalInfoContainer = document.getElementById('generalInfoContainer');
+                        if (generalInfoContainer) {
+                            const { facture__commands__lines__product__product_name: mostReturnedItem, return_count: mostReturnedCount } = data.most_returned_item;
+                            const { supplier__supplier_name: supplierName, return_count: supplierReturns } = data.supplier_with_most_returns;
+                            const { livreur__username: livreurName, return_count: livreurReturns } = data.livreur_with_most_returns;
+                            const { facture__customer__customer_name: customerName, return_count: customerReturns } = data.customer_with_most_returns;
+                    
+                            generalInfoContainer.innerHTML = `
+                                <div style="text-align: left;">
+                                    <ul style="list-style-type: none; padding: 0; color: black;">
+                                        <li><strong>Most Returned Item:</strong> ${mostReturnedItem} - Returns: ${mostReturnedCount}</li>
+                                        <li><strong>Supplier with Most Returns:</strong> ${supplierName} - Returns: ${supplierReturns}</li>
+                                        <li><strong>Livreur with Most Returns:</strong> ${livreurName} - Returns: ${livreurReturns}</li>
+                                        <li><strong>Customer with Most Returns:</strong> ${customerName} - Returns: ${customerReturns}</li>
+                                    </ul>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    
+                    
+    
+                    // Monthly Returns Line Chart
+                    if (Array.isArray(data.monthly_returns) && data.monthly_returns.length > 0) {
+                        const monthlyReturnsChart = new Chart(
+                            document.getElementById('monthlyReturnsChart'),
+                            {
+                                type: 'line',
+                                data: {
+                                    labels: data.monthly_returns.map(item => item.month), // X-Axis: Months
+                                    datasets: [{
+                                        label: 'Monthly Returns',
+                                        data: data.monthly_returns.map(item => item.total_returns),
+                                        borderColor: 'rgb(75, 192, 192)',
+                                        fill: false,
+                                        tension: 0.1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        x: { title: { display: true, text: 'Month' } },
+                                        y: { title: { display: true, text: 'Total Returns' } }
+                                    }
+                                }
+                            }
+                        );
+                    } else {
+                        console.error('No monthly_returns data available');
+                    }
+    
+                    // Returns by Supplier Pie Chart
+                    // Returns by Supplier Pie Chart
+if (Array.isArray(data.monthly_returns_by_supplier) && data.monthly_returns_by_supplier.length > 0) {
+    const returnsBySupplierChart = new Chart(
+        document.getElementById('returnsBySupplierChart'),
+        {
+            type: 'pie',
+            data: {
+                labels: data.monthly_returns_by_supplier.map(item => item.supplier__supplier_name),
+                datasets: [{
+                    data: data.monthly_returns_by_supplier.map(item => item.total_returns),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#F9EB3D']
+                }]
+            },
+            options: { 
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            color: 'black' // Change legend text color to black
+                        }
+                    }
+                },
+                // Make the chart bigger by adjusting the canvas width and height
+                aspectRatio: 1.5 // This increases the chart size; 1 is the default, >1 is wider
+            }
+        }
+    );
+} else {
+    console.error('No monthly_returns_by_supplier data available');
+}
+
+                   // Monthly Returns by Customer Bar Chart
+                if (Array.isArray(data.monthly_returns_by_customer) && data.monthly_returns_by_customer.length > 0) {
+                    new Chart(document.getElementById('monthlyReturnsByCustomerChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.monthly_returns_by_customer.map(item => item.facture__customer__customer_name),
+                            datasets: [{
+                                label: 'Returns by Customer',
+                                data: data.monthly_returns_by_customer.map(item => item.total_returns),
+                                backgroundColor: chartColors,
+                                borderColor: chartColors.map(color => color.replace('1)', '0.8)')), // Slightly transparent
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: { title: { display: true, text: 'Customer Name' } },
+                                y: { title: { display: true, text: 'Total Returns' }, beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+
+                // Monthly Returns by Item Bar Chart
+                if (Array.isArray(data.monthly_returns_by_item) && data.monthly_returns_by_item.length > 0) {
+                    new Chart(document.getElementById('monthlyReturnsByItemChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.monthly_returns_by_item.map(item => item.facture__commands__lines__product__product_name),
+                            datasets: [{
+                                label: 'Returns by Item',
+                                data: data.monthly_returns_by_item.map(item => item.total_returns),
+                                backgroundColor: chartColors,
+                                borderColor: chartColors.map(color => color.replace('1)', '0.8)')),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: { title: { display: true, text: 'Item Name' } },
+                                y: { title: { display: true, text: 'Total Returns' }, beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+
+                // Monthly Returns by Livreur Bar Chart
+                if (Array.isArray(data.monthly_returns_by_livreur) && data.monthly_returns_by_livreur.length > 0) {
+                    new Chart(document.getElementById('monthlyReturnsByLivreurChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.monthly_returns_by_livreur.map(item => item.livreur__username),
+                            datasets: [{
+                                label: 'Returns by Livreur',
+                                data: data.monthly_returns_by_livreur.map(item => item.total_returns),
+                                backgroundColor: chartColors,
+                                borderColor: chartColors.map(color => color.replace('1)', '0.8)')),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: { title: { display: true, text: 'Livreur' } },
+                                y: { title: { display: true, text: 'Total Returns' }, beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    });
+    </script>
+    
+
+    
+    
+    
+
+
+<style>
+    canvas {
+        width: 400px !important;
+        height: 250px !important; 
+    }
+    .card {
+        border-radius: 10px; 
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); 
+        margin: 4px; 
+        padding: 10px; 
+    
+    }
+    .box-area {
+        padding: 2rem;
+        margin: 1rem auto; 
+    }
+    
+    .card-header {
+        background-color: #103cbe !important;
+        color: #ffffff; 
+        padding: 10px;
+        font-size: 1.25rem; 
+        font-weight: bold; 
+    }
+    .shadow-card {
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px; 
+    }
+    
+    .card-body {
+        background-color: #f9f9f9; 
+        font-family: 'Arial', sans-serif; 
+        color: #103cbe;
+        padding: 10px;
+    }
+    
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+.container {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100% 
+}
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0px;
+            background-color: #f4f4f9;
+            color: #333;
+            width: 100%;
+        }
+
+
+
+
+
+</style>
+</body>
+</html>

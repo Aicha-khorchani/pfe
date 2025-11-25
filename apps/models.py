@@ -99,7 +99,7 @@ class Livreurs(customuser):
         return f"{self.full_name} ({self.username}) - {self.company_name}"
     class Meta:
         db_table = 'apps_Livreurs'
- 
+
 
 class customer(models.Model):
     customer_TYPE_CHOICES = [
@@ -142,7 +142,7 @@ class itemvariant(models.Model):
         db_table = 'apps_itemvariant'
         
 
-  
+
 
 class supplier(models.Model):
     supplier_id = models.AutoField(primary_key=True)
@@ -249,7 +249,7 @@ class Delivery(models.Model):
     delivery_id = models.AutoField(primary_key=True)
     company_name = models.CharField(max_length=100)
     contact_info = models.CharField(max_length=100)
-    delivery_person = models.ForeignKey(Livreurs, on_delete=models.CASCADE, default=16)
+    delivery_person = models.ForeignKey(Livreurs, on_delete=models.CASCADE, default=16, related_name='deliveries') 
     delivery_person_number = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
@@ -263,7 +263,7 @@ class Command(models.Model):
     delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
     order_date = models.DateField(blank=True, null=True)
     shipping_address = models.TextField(blank=True, null=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=3, default=0)
 
     def __str__(self):
         return f"Command {self.id} for {self.customer}"
@@ -337,9 +337,13 @@ class Note(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(customuser, on_delete=models.CASCADE, related_name='notifications')
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, null=True, blank=True)  
     message = models.CharField(max_length=255)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Notification for {self.user}: {self.message}"
+    def mark_as_read(self):
+        self.is_read = True
+        self.save()

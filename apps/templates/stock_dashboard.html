@@ -1,0 +1,381 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <!--FontAwesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+        integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+
+    <!--Chartjs CDN-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+    <!--Custome CSS-->
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | stock dashboard</title>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+</head>
+
+
+
+
+
+
+
+
+
+<body>    
+    <div class="container-fluid">
+        <div class="row mt-4 align-items-stretch">
+
+
+
+            <div class="col-md-5 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info" style="color: #002147;">
+                        Unsold Products
+                    </div>
+                    <div class="card-body" style="background-color: #E5E4E2;"> 
+                        <table class="table table-striped table-bordered table-hover" >
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Total Sold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in unsold_products %}
+                                <tr>
+                                    <td>{{ product.product_name }}</td>
+                                    <td>0</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">All products have been sold at least once.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="col-md-7 d-flex">
+                <div class="card bg-white flex-fill">
+                    <!-- Home Header -->
+                    <div class="card-header bg-info" style="color: #002147;">
+                        home
+                    </div>
+                    <div class="card-body" style="background-color: #CCCCFF;">
+                        <div class="row">
+                            <!-- Partners -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'partners' %}" data-toggle="tooltip" title="Total active partners in the system">
+                                    <div class="card-body" style="background-color: rgba(255, 99, 132, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Partners <i class="fas fa-users"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <!-- Documents -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'doc' %}" data-toggle="tooltip" title="Manage invoice reception and return notes">
+                                    <div class="card-body" style="background-color: rgba(54, 162, 235, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Documents <i class="fas fa-box"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <!-- Stock -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'stock' %}" data-toggle="tooltip" title="Check stock availability and manage products catalogue">
+                                    <div class="card-body" style="background-color: rgba(75, 192, 192, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Stock <i class="fas fa-shipping-fast"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Marquee -->
+                        <marquee behavior="" direction="">
+                            <h3 class="my-4" style="color: #002147;">go digital with Arkeyez ERP stock dashboard</h3>
+                        </marquee>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <div class="container-fluid mt-1 d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+        <div class="row g-1 border rounded-5 p-2 bg-white shadow box-area" style="width: 100%;">
+            <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background-color: #f0f0f0;" height: "40vh;">
+                <div class="chart-container" style="position: relative; height: 100%; width: 100%; max-width: 400px;">
+                    <canvas id="mostReplenishedChart"></canvas>
+                    <h4 class="text-dark mt-2">Most Replenished Items</h4>
+                </div>
+            </div>
+    
+            <!-------------------- ------ Right Box ---------------------------->
+            <div class="col-md-6 d-flex justify-content-center align-items-center flex-column" style="height: 40vh;">
+                <div class="chart-container" style="position: relative; height: 100%; width: 100%; max-width: 400px;">
+                    <canvas id="lowOutOfStockChart"></canvas>
+                    <h4 class="text-dark mt-2">Low and Out of Stock Items</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+       </div> 
+      </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script>
+    // Common Color Scheme
+    const colors = {
+        backgroundColor: [
+            'rgba(255, 99, 132, 1)', 
+            'rgba(54, 162, 235, 1)', 
+            'rgba(255, 206, 86, 1)', 
+            'rgba(75, 192, 192, 1)', 
+            'rgba(153, 102, 255, 1)', 
+            'rgba(255, 159, 64, 1)'
+        ],
+        borderColor: [
+            'rgba(255, 99, 132, 1)', 
+            'rgba(54, 162, 235, 1)', 
+            'rgba(255, 206, 86, 1)', 
+            'rgba(75, 192, 192, 1)', 
+            'rgba(153, 102, 255, 1)', 
+            'rgba(255, 159, 64, 1)'
+        ]
+    };
+
+    // Pie Chart: Low and Out-of-Stock Items
+    const lowOutOfStockData = {
+        labels: ['Low Stock', 'Out of Stock'],
+        datasets: [{
+            label: 'Stock Status',
+            data: [{{ low_stock_items|length }}, {{ out_of_stock_items|length }}],
+            backgroundColor: colors.backgroundColor.slice(0, 2),
+            borderColor: colors.borderColor.slice(0, 2),
+            borderWidth: 1
+        }]
+    };
+
+    const lowOutOfStockConfig = {
+        type: 'pie',
+        data: lowOutOfStockData,
+        options: {
+            responsive: true,
+            layout: {
+                padding: 0,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#000000' 
+                    }
+                },
+                tooltip: {
+                    bodyColor: '#000000',
+                    titleColor: '#000000',
+                    footerColor: '#000000'
+                }
+            }
+        }
+    };
+
+    new Chart(document.getElementById('lowOutOfStockChart'), lowOutOfStockConfig);
+
+    // Bar Chart: Most Replenished Items
+    const mostReplenishedData = {
+        labels: [{% for item in most_replenished_items %}'{{ item.item__product_name }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Replenishment Count',
+            data: [{% for item in most_replenished_items %}{{ item.total_replenished }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: colors.backgroundColor,
+            borderColor: colors.borderColor,
+            borderWidth: 1
+        }]
+    };
+
+    const mostReplenishedConfig = {
+        type: 'bar',
+        data: mostReplenishedData,
+        options: {
+            responsive: true,
+            layout: {
+                padding: 0,
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#000000'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#000000', 
+                        beginAtZero: true
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#000000' 
+                    }
+                },
+                tooltip: {
+                    bodyColor: '#000000',
+                    titleColor: '#000000',
+                    footerColor: '#000000'
+                }
+            }
+        }
+    };
+
+    new Chart(document.getElementById('mostReplenishedChart'), mostReplenishedConfig);
+</script>
+<style>
+    .card-header {
+        color: #ffffff; /* Optional: Make text white for better contrast */
+    }
+    .card {
+        border-radius: 10px; 
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); 
+        margin: 4px; 
+        padding: 10px; 
+    
+    }
+    .box-area {
+        padding: 2rem;
+        margin: 1rem auto; 
+    }
+    
+.card-header {
+    padding: 10px;
+    font-size: 1.25rem; 
+    font-weight: bold;
+    background-color: #103cbe !important;
+    color: #ffffff; 
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0px;
+    background-color: #f4f4f9;
+    color: #333;
+    width: 100%;
+}
+  
+    
+    .card-body {
+        background-color: #f9f9f9; 
+        font-family: 'Arial', sans-serif; 
+        color: #103cbe;
+        padding: 10px;
+    }
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .chart-container {
+        width: 100%;
+        height: auto; 
+    }
+    .shadow-card {
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 5px; 
+    }
+    .info-box-header {
+        background-color: #103cbe !important;
+        color: #ffffff; 
+    }
+
+    .container {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100% 
+    }
+</style>
+</body>
+</html>

@@ -33,12 +33,43 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
                 </ul>
-                <form class="d-flex" method="GET" action="{% url 'search_return' %}">
-                    {% csrf_token %}
-                    <input type="search" name="searched" id="searched" class="form-control me-2"  placeholder="Search return note...">
-                    <button class="search-button btn btn-primary" type="submit" >Search</button>
-                </form>
                 <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
@@ -47,7 +78,7 @@
 
            
     <!----------------------- Main Container -------------------------->
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="content" style="padding-top: 70px; padding-bottom: 50px; min-height: calc(100vh - 120px);">
         <!----------------------- Login Container -------------------------->
          <div class="row border rounded-5 p-3 bg-white shadow box-area">
             <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background: #103cbe;">
@@ -63,7 +94,7 @@
               <div class="header-text mb-4">
                    <h3>Add return </h3>
               </div>
-              <form method="POST" id="retourForm">
+              <form method="POST"  action="/apps/add_retour" id="retourForm">
                 {% csrf_token %}
 
                 <!-- Select Facture -->
@@ -88,7 +119,7 @@
                 <!-- Reason for Return -->
                 <div class="mb-4">
                     <label for="raison_retour" class="form-label">Reason for Return:</label>
-                    <textarea id="raison_retour" name="raison_retour" class="form-control" rows="3"></textarea>
+                    <textarea id="raison_retour" name="raison_retour" class="form-control" rows="3" required></textarea>
                 </div>
 
                 <!-- Return Date -->
@@ -97,7 +128,6 @@
                     <input type="date" id="date_retour" name="date_retour" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label for="supplier" class="form-label">Select Supplier</label>
                     <select name="supplier" id="supplier" class="form-select" required>
                         <option value="" disabled selected>Choose a supplier</option>
                         {% for supplier in suppliers %}
@@ -119,7 +149,7 @@
                 <!-- Additional Information -->
                 <div class="mb-4">
                     <label for="informations_supp" class="form-label">Additional Information:</label>
-                    <textarea id="informations_supp" name="informations_supp" class="form-control" rows="3"></textarea>
+                    <textarea id="informations_supp" name="informations_supp" class="form-control" rows="2" required></textarea>
                 </div>
 
                 <!-- Buttons -->
@@ -127,10 +157,10 @@
                     <button type="submit" class="btn btn-primary w-50">Submit Return</button>
                 </div>
                 <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-secondary" onclick="window.print()">Print Reception Note</button>
-            </div>
+                    <button type="submit" class="btn btn-secondary" onclick="window.print()">Print Retour Note</button>
+                </div>
 
-            <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
+                <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
                 <a href="{% url 'all_retour' %}" class="btn btn-outline-primary">Show All Returns</a>
                 </div>
             </form>
@@ -142,139 +172,164 @@
 </div>
     
 
-    
-    <footer class="mt-5 bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>About Us</h5>
-                    <p>ARKEYEZ is a startup offering ERP and CRM solutions to streamline work, making it digital and efficient.</p>
-                    <div>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-linkedin"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-twitter"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fa-brands fa-youtube"></i></a>
-                        <a href="#" class="text-white"><i class="fa-solid fa-envelope"></i></a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-white">About</a></li>
-                        <li><a href="#" class="text-white">Privacy Policy</a></li>
-                        <li><a href="#" class="text-white">Help</a></li>
-                        <li><a href="#" class="text-white">Terms & Conditions</a></li>
-                        <li><a href="#" class="text-white">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contact Us</h5>
-                    <ul class="list-unstyled">
-                        <li><i class="fa fa-map-marker me-2"></i>Tunisia, Tataouine Nord, Cyber Park 3200</li>
-                        <li><i class="fa fa-phone me-2"></i><a href="tel:20 890 113" class="text-white">20 890 113</a></li>
-                        <li><i class="fa fa-envelope me-2"></i><a href="mailto:info@arkeyes.com" class="text-white">info@arkeyes.com</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <div class="text-center text-white bg-dark py-2">
-        <p>&copy; 2024 Aicha Khorchani. All rights reserved.</p>
-    </div>
+  
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const factureSelect = document.getElementById("factureSelect"); // Dropdown for selecting factures
-        const commandSelect = document.getElementById("commandSelect"); // Multi-select dropdown for commands
-        const submitButton = document.getElementById("submitRetour"); // Submit button for the form
-        const reasonInput = document.getElementById("raisonRetour"); // Input field for return reason
-        const dateInput = document.getElementById("dateRetour"); // Input field for return date
-        const deliveryPersonSelect = document.getElementById("livreurSelect"); // Dropdown for selecting delivery persons
-        const additionalInfoTextarea = document.getElementById("additionalInfo"); // Textarea for additional information
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const factureSelect = document.getElementById("factureSelect"); // Dropdown for selecting factures
+            const commandSelect = document.getElementById("commandSelect"); // Multi-select dropdown for commands
+            const submitButton = document.querySelector("button[type='submit']"); // Submit button for the form
+            const reasonInput = document.getElementById("raison_retour"); // Input field for return reason
+            const dateInput = document.getElementById("date_retour"); // Input field for return date
+            const supplierSelect = document.getElementById("supplier"); // Dropdown for selecting suppliers
+            console.log("Supplier Select:", supplierSelect); 
+            const deliveryPersonSelect = document.getElementById("livreur"); // Dropdown for selecting delivery persons
+            const additionalInfoTextarea = document.getElementById("informations_supp"); // Textarea for additional information
+            const errorContainer = document.createElement("div"); // Container for error messages
+            errorContainer.className = "alert alert-danger mt-3"; // Bootstrap styling for error messages
+            errorContainer.style.display = "none"; // Initially hidden
+            document.getElementById("retourForm").prepend(errorContainer); // Add it to the form
     
-        // Event listener for when the facture dropdown value changes
-        factureSelect.addEventListener("change", function () {
-            const factureId = this.value;
-            console.log("Selected Facture ID:", factureId); // Debugging line
-            commandSelect.innerHTML = '<option value="" disabled>Loading commands...</option>'; // Temporary state
+            // Event listener for when the facture dropdown value changes
+            factureSelect.addEventListener("change", function () {
+                const factureId = this.value;
+                console.log("Selected Facture ID:", factureId); // Debugging line
+                commandSelect.innerHTML = '<option value="" disabled>Loading commands...</option>'; // Temporary state
     
-            if (factureId) {
-                // Fetch commands related to the selected facture
-                fetch(`/apps/get_commands/${factureId}/`)
-                    .then(response => {
-                        console.log("Response Status:", response.status); // Debug response status
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("Fetched Commands:", data); // Debug fetched commands
-                        commandSelect.innerHTML = "";
-                        data.commands.forEach(command => {
-                            const option = document.createElement("option");
-                            option.value = command.id;
-                            option.textContent = `Command ${command.id} - ${command.description}`;
-                            commandSelect.appendChild(option);
+                if (factureId) {
+                    // Fetch commands related to the selected facture
+                    fetch(`/apps/get_commands/${factureId}/`)
+                        .then(response => {
+                            console.log("Response Status:", response.status); // Debug response status
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Fetched Commands:", data); // Debug fetched commands
+                            commandSelect.innerHTML = "";
+                            data.commands.forEach(command => {
+                                const option = document.createElement("option");
+                                option.value = command.id;
+                                option.textContent = `Command ${command.id} - ${command.description}`;
+                                commandSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Error fetching commands:", error);
+                            commandSelect.innerHTML = '<option value="" disabled>Error loading commands</option>';
                         });
-                    })
-                    .catch(error => {
-                        console.error("Error fetching commands:", error);
-                        commandSelect.innerHTML = '<option value="" disabled>Error loading commands</option>';
-                    });
-            }
-        });
+                }
+            });
     
-        // Event listener for form submission to validate the data before sending it
-        submitButton.addEventListener("click", function (event) {
-            event.preventDefault(); // Prevent default form submission
-    
-            const selectedCommands = Array.from(commandSelect.selectedOptions).map(option => option.value);
-            console.log("Selected Commands:", selectedCommands); // Debug selected commands
-    
-            if (!factureSelect.value) {
-                alert("Please select a facture.");
-                return;
+            // Helper function to display error messages
+            function showError(message) {
+                errorContainer.textContent = message;
+                errorContainer.style.display = "block";
             }
     
-            if (selectedCommands.length === 0) {
-                alert("Please select at least one command.");
-                return;
+            // Helper function to clear error messages
+            function clearError() {
+                errorContainer.style.display = "none";
+                errorContainer.textContent = "";
             }
     
-            const payload = {
-                facture: factureSelect.value,
-                selected_commands: selectedCommands,
-                raison_retour: reasonInput.value,
-                date_retour: dateInput.value,
-                livreur: deliveryPersonSelect.value,
-                informations_supp: additionalInfoTextarea.value,
-            };
+            // Event listener for form submission to validate the data before sending it
+            submitButton.addEventListener("click", function (event) {
+                event.preventDefault(); // Prevent default form submission
     
-            console.log("Payload to send:", payload); // Debug the payload
+                clearError(); // Clear any existing error messages
     
-            // Send the data to the server
-            fetch("/add_retour/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
-                },
-                body: JSON.stringify(payload),
-            })
+                // Validate required fields
+                if (!factureSelect.value) {
+                    showError("Please select a facture.");
+                    return;
+                }
+    
+                const selectedCommands = Array.from(commandSelect.selectedOptions).map(option => option.value);
+                if (selectedCommands.length === 0) {
+                    showError("Please select at least one command.");
+                    return;
+                }
+    
+                if (!supplierSelect.value) {
+                    showError("Please select a supplier.");
+                    return;
+                }
+    
+                if (!reasonInput.value.trim()) {
+                    showError("Please provide a reason for the return.");
+                    return;
+                }
+    
+                if (!dateInput.value) {
+                    showError("Please select a return date.");
+                    return;
+                }
+    
+                if (!deliveryPersonSelect.value) {
+                    showError("Please select a delivery person.");
+                    return;
+                }
+    
+                // If all validations pass, prepare payload for submission
+                const payload = {
+                    facture: factureSelect.value,
+                    selected_commands: selectedCommands,
+                    supplier: supplierSelect.value,
+                    raison_retour: reasonInput.value.trim(),
+                    date_retour: dateInput.value,
+                    livreur: deliveryPersonSelect.value,
+                    informations_supp: additionalInfoTextarea.value.trim(),
+                };
+                console.log("Supplier Select:", supplierSelect.value);  
+                console.log("Payload to send:", payload); // Deb
+    
+                fetch("/apps/add_retour", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: JSON.stringify(payload),
+                })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Response from server:", data); // Debug server response
+                    console.log("Response from server:", data);
                     if (data.success) {
                         alert("Return processed successfully.");
-                        window.location.href = "/all_retour/"; // Redirect to returns page
+                        // La redirection sera maintenant gérée côté backend, donc pas besoin de rediriger ici
                     } else {
-                        alert(`Error: ${data.message}`);
+                        showError(`Error: ${data.message}`);
                     }
                 })
                 .catch(error => {
-                    console.error("Error submitting return:", error);
-                    alert("An error occurred while processing the return. Please try again.");
+                    console.error("Error submitting the form:", error);
                 });
+                  
+            });
         });
-    });
-</script>    
+    </script>
+    <style>
+        body {
+            padding-top: 70px; 
+            padding-bottom: 50px; /* Adjust based on footer height if necessary */
+        }
+    
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030; /* Ensure it stays on top */
+        }
+    
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1030; /* Ensure it stays on top */
+        }
+    </style>
+    
+    
 </body>
 </html>

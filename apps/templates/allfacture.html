@@ -59,68 +59,96 @@
         </div>
 
         <!-- Table for Factures -->
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Date</th>
-                        <th>Address</th>
-                        <th>Tax</th>
-                        <th>Discount</th>
-                        <th>Payment Method</th>
-                        <th>TTC</th>
-                        <th>Commands</th>
-                        <th>Customer</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for facture in factures %}
-                    <tr>
-                        <td>{{ facture.facture_id }}</td>
-                        <td>{{ facture.datef }}</td>
-                        <td>{{ facture.addressf }}</td>
-                        <td>{{ facture.tax }}</td>
-                        <td>{{ facture.discount }}</td>
-                        <td>{{ facture.payment_method }}</td>
-                        <td>{{ facture.ttc }}</td>
-                        <td>
-                            <ul>
-                                {% for command in facture.commands.all %}
-                                <li>
-                                    Order ID: {{ command.pk }}<br>
-                                    {% for line in command.lines.all %}
-                                    Product: {{ line.product.product_name|default:"No product name available" }}<br>
-                                    Variant Combination:
-                                    <pre style="display:inline;">{{ line.variant_combination|default:"No variant" }}</pre><br>
-                                    Quantity: {{ line.quantity|default:"-" }}<br>
-                                    {% endfor %}
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                        <td>{{ facture.customer.customer_name }}</td>
-                        <td>
-                            <a href="{% url 'update_facture' facture.facture_id %}">
-                                <button class="btn btn-sm btn-custom">Edit</button>
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="10" class="text-center">No invoice available with that data.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>   
-            </table>
-        </div>
+        <div class="container mt-5">
 
-        <div class="input-group mb-3 d-flex justify-content-center">
-            <a href="{% url 'delete_facture' %}" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>Delete invoice note
-            </a>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Address</th>
+                            <th>Tax</th>
+                            <th>Discount</th>
+                            <th>Payment Method</th>
+                            <th>TTC</th>
+                            <th>Commands</th> <!-- Removed the "Commands ID" column -->
+                            <th>Customer</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for facture in factures %}
+                        <tr>
+                            <td>{{ facture.datef }}</td>
+                            <td>{{ facture.addressf }}</td>
+                            <td>{{ facture.tax }}</td>
+                            <td>{{ facture.discount }}</td>
+                            <td>{{ facture.payment_method }}</td>
+                            <td>{{ facture.ttc }}</td>
+                            <td>
+                                {% for command in facture.commands.all %}
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Product</th>
+                                                <th>Variant Combination</th>
+                                                <th>Quantity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td rowspan="{{ command.lines.all|length }}">
+                                                    <strong>Order ID: {{ command.pk }}</strong>
+                                                </td>
+                                                {% for line in command.lines.all %}
+                                                    <td>{{ line.product.product_name|default:"No product name available" }}</td>
+                                                    <td><pre style="display:inline;">{{ line.variant_combination|default:"No variant" }}</pre></td>
+                                                    <td>{{ line.quantity|default:"-" }}</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="4" style="color: gray;">No products associated with this order.</td>
+                                                </tr>
+                                                {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% empty %}
+                                <p style="color: gray;">No orders associated with this facture.</p>
+                                {% endfor %}
+                            </td>
+                            <td>{{ facture.customer.customer_name }}</td>
+                            <td>
+                                <div class="d-flex flex-column justify-content-center action-buttons">
+                                    <a href="{% url 'update_facture' facture.facture_id %}">
+                                        <button class="btn btn-edit-product">
+                                            <i class="fas fa-edit"></i>
+                                        </button>                                          </a>
+                                    <a href="{% url 'delete_facture' facture.facture_id %}" onclick="return confirm('Are you sure you want to delete this invoice?')">
+                                        <button class="btn btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </a>
+                                    <a href="{% url 'add_facture' %}"> 
+                                        <button class="btn btn-primary">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">No invoice available with that data.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            
         </div>
+    </div>
     </div>
 </div>
 
@@ -164,20 +192,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
     <style>
-        .btn-custom {
-            background-color: #007bff;
-            color: white;
-            border: none;
+        .container {
+            max-width: 1700px; /* Adjust as needed */
+        }
+        table {
+            width: auto !important;
         }
 
-        .btn-custom:hover {
-            background-color: #0056b3;
+        .action-buttons a {
+            margin: 0 2px; /* Small space between buttons */
+        }
+        .action-buttons {
+            padding: 0 !important; /* Remove any padding from the container */
+            margin: 0 !important; /* Remove margin to prevent excessive space */
+            display: flex; /* Ensure correct layout */
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center; /* Optional: Center the buttons horizontally */
+            gap: 5px; /* Space between buttons */
         }
 
-        /* For smaller buttons */
-        .btn-sm {
-            font-size: 12px;
-            padding: 0.25rem 0.5rem;
+        .action-buttons button {
+            font-size: 12px !important;
+            padding: 2px 4px !important;
+            height: 30px !important;
+            width: auto !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            min-width: 0 !important; /* Remove min-width */
+            max-width: none !important; /* Prevent max-width constraint */
+        }
+        
+        .action-buttons i {
+            font-size: 14px !important; /* Ensure icon size is adjusted */
         }
     </style>
 </body>

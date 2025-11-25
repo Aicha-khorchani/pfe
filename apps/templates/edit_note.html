@@ -30,14 +30,47 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
-                    </li></ul>
-                <form class="d-flex" method="GET" action="{% url 'search_itemvariant' %}">
-                    {% csrf_token %}
-                    <input type="search"  name="searched" id="searched" class="form-control me-2"  placeholder="Search product variant...">
-                    <button class="search-button btn btn-primary" type="submit" >Search</button>
-                </form>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
                 <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
-            </div> </div>
+            </div>
+        </div>
     </nav>
     <!----------------------- Main Container -------------------------->
      <div class="container d-flex justify-content-center align-items-center min-vh-100">
@@ -56,29 +89,25 @@
                 <div class="header-text mb-4">
                      <h3>edit your note</h3>
                 </div>
-                <form method="POST"  action="{% url 'edit_note' %}">
+                <form method="POST"  id="editNoteForm">
                     {% csrf_token %}
-               
-                    <label for="customer_id" class="form-label">Select Customer:</label> 
-                    <select name="customer_id" id="customer_id"class="form-select" required>
-                        <option value="" disabled selected>Choose a customer</option>
-                          {% for customer in customers %}
-                          <option value="{{ customer.customer }}">{{ customer.customer_name }}</option>  
-                          {% endfor %}
+                    <label for="customer_id" class="form-label">Sélectionner un client:</label>
+                    <select name="customer_id" id="customer_id" class="form-select" required>
+                      <option value="" disabled selected>Choisir un client</option>
+                      {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.customer_name }}</option>  
+                      {% endfor %}
                     </select>
-                </select>
-                <label for="command_id" class="form-label">Select Command:</label>
-                <select name="command" id="command" class="form-select" required>
-                    <option value="" disabled>Select a command</option>
-                    {% for command in commands %}
-                        <option value="{{ command.Command_id }}">{{ command.Command_id }}</option>
-                    {% endfor %}
-                </select>
-
+                    <label for="command_id" class="form-label">Sélectionner une commande:</label>
+                    <select id="command" name="command_id" class="form-select" required>
+                      <option value="" disabled selected>Choisir une commande</option>
+                    </select>
+            </br>
                 <div class="input-group mb-3">
                     <textarea id="note" name="note" class="form-control form-control-lg" rows="3" placeholder="Meeting Note" required></textarea>
                 </div>
                 <div class="input-group mb-3 d-flex justify-content-center">
+                    
                     <button type="submit" class="btn btn-lg btn-primary w-100 fs-6 btn-custom" style="min-width: 200px;">edit note</button>
                 </div>
             </form>
@@ -132,5 +161,61 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    <script>
+       // Attendez que le DOM soit chargé avant d'exécuter le script
+document.addEventListener('DOMContentLoaded', function() {
+    // Récupérer l'élément de sélection des clients et des commandes
+    const customerSelect = document.getElementById('customer_id');
+    const commandSelect = document.getElementById('command');
+    
+    // Fonction pour récupérer les commandes d'un client donné
+    function fetchCommandsForCustomer(customerId) {
+      fetch(`/apps/get_commands_by_customer/${customerId}/`)  // Assurez-vous que l'URL est correcte
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Vider la liste des commandes existantes et ajouter l'option par défaut
+            commandSelect.innerHTML = '<option value="">-- Sélectionnez une commande --</option>';
+            
+            // Ajouter les commandes au sélecteur
+            data.commands.forEach(command => {
+              const option = document.createElement('option');
+              option.value = command.id;
+              option.textContent = command.label;
+              commandSelect.appendChild(option);
+            });
+          } else {
+            alert(data.message || 'Une erreur est survenue lors de la récupération des commandes.');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching commands:', error);
+          alert('Une erreur est survenue lors de la récupération des commandes.');
+        });
+    }
+  
+    // Événement lorsque le client est sélectionné dans le formulaire
+    customerSelect.addEventListener('change', function() {
+      const customerId = customerSelect.value;
+  
+      // Si un client est sélectionné, récupérer ses commandes
+      if (customerId) {
+        fetchCommandsForCustomer(customerId);
+      } else {
+        // Si aucun client n'est sélectionné, vider les commandes
+        commandSelect.innerHTML = '<option value="">-- Sélectionnez une commande --</option>';
+      }
+    });
+  
+    // Optionnel : vous pouvez ajouter un client par défaut si nécessaire
+    if (customerSelect.value) {
+      fetchCommandsForCustomer(customerSelect.value);
+    }
+  });
+  
+      </script>
+      
+      
+      
 </body>
 </html>
