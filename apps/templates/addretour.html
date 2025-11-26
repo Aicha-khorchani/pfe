@@ -1,335 +1,87 @@
+{% extends "components/base2.html" %}
 {% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <title>COM ARKEYEZ | return</title>
-</head>
-<body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" 
-                           class="nav-link dropdown-toggle text-white" 
-                           id="notificationDropdown" 
-                           role="button" 
-                           data-bs-toggle="dropdown" 
-                           aria-expanded="false">
-                            Notifications
-                            {% if unread_count > 0 %}
-                                <span class="badge bg-danger">{{ unread_count }}</span>
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                            {% for notification in unread_notifications %}
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
-                                        {{ notification.message }}
-                                    </a>
-                                </li>
-                            {% empty %}
-                                <li><span class="dropdown-item">No new notifications</span></li>
-                            {% endfor %}
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
-                                    View All Notifications
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    
-                    
-                    
-                    
-                </ul>
-                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
-            </div>
-        </div>
-    </nav>
+{% block title %}Add Return | ARKEYEZ{% endblock %}
 
+{% block content %}
+<div class="row align-items-center">
 
-           
-    <!----------------------- Main Container -------------------------->
-    <div class="content" style="padding-top: 70px; padding-bottom: 50px; min-height: calc(100vh - 120px);">
-        <!----------------------- Login Container -------------------------->
-         <div class="row border rounded-5 p-3 bg-white shadow box-area">
-            <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background: #103cbe;">
-                <img src="{% static 'images/1.png' %}" class="img-fluid" style="width: 250px;" alt="Your Image">
-                <p class="text-white fs-2" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;">Go Digital</p>
-                <small class="text-white text-wrap text-center" style="width: 17rem;font-family: 'Courier New', Courier, monospace;">Enjoy a better experience with ARKEYEZ Customer Sales Order Management System
-             </small>
-            </div> 
-                <!-------------------- ------ Right Box ---------------------------->
-        
-       <div class="col-md-6 right-box">
-        <div class="row align-items-center">
-              <div class="header-text mb-4">
-                   <h3>Add return </h3>
-              </div>
-              <form method="POST"  action="/apps/add_retour" id="retourForm">
-                {% csrf_token %}
-
-                <!-- Select Facture -->
-                <div class="mb-4">
-                    <label for="factureSelect" class="form-label">Select Facture:</label>
-                    <select id="factureSelect" name="facture" class="form-select" required>
-                        <option value="" disabled selected>Choose a Facture</option>
-                        {% for facture in factures %}
-                            <option value="{{ facture.pk }}">Facture {{ facture.facture_id }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Select Commands -->
-                <div class="mb-4">
-                    <label for="commandSelect" class="form-label">Select Commands:</label>
-                    <select id="commandSelect" name="selected_commands" class="form-select" multiple required>
-                        <!-- Dynamically populated via JavaScript -->
-                    </select>
-                </div>
-
-                <!-- Reason for Return -->
-                <div class="mb-4">
-                    <label for="raison_retour" class="form-label">Reason for Return:</label>
-                    <textarea id="raison_retour" name="raison_retour" class="form-control" rows="3" required></textarea>
-                </div>
-
-                <!-- Return Date -->
-                <div class="mb-4">
-                    <label for="date_retour" class="form-label">Return Date:</label>
-                    <input type="date" id="date_retour" name="date_retour" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <select name="supplier" id="supplier" class="form-select" required>
-                        <option value="" disabled selected>Choose a supplier</option>
-                        {% for supplier in suppliers %}
-                            <option value="{{ supplier.pk }}">{{ supplier.supplier_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Select Delivery Person -->
-                <div class="mb-4">
-                    <label for="livreur" class="form-label">Select Delivery Person:</label>
-                    <select id="livreur" name="livreur" class="form-select" required>
-                        <option value="" disabled selected>Choose a Delivery Person</option>
-                        {% for livreur in livreurs %}
-                            <option value="{{ livreur.pk }}">{{ livreur.full_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Additional Information -->
-                <div class="mb-4">
-                    <label for="informations_supp" class="form-label">Additional Information:</label>
-                    <textarea id="informations_supp" name="informations_supp" class="form-control" rows="2" required></textarea>
-                </div>
-
-                <!-- Buttons -->
-                <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary w-50">Submit Return</button>
-                </div>
-                <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-secondary" onclick="window.print()">Print Retour Note</button>
-                </div>
-
-                <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
-                <a href="{% url 'all_retour' %}" class="btn btn-outline-primary">Show All Returns</a>
-                </div>
-            </form>
-
-          </div>
-       </div> 
-  
+    <div class="header-text mb-4 text-center">
+        <h3>Add Return</h3>
     </div>
+    <form method="POST" action="/apps/add_retour" id="retourForm" class="w-100">
+        {% csrf_token %}
+
+        <!-- Select Facture -->
+        <div class="mb-4">
+            <label for="factureSelect" class="form-label">Select Facture:</label>
+            <select id="factureSelect" name="facture" class="form-select" required>
+                <option value="" disabled selected>Choose a Facture</option>
+                {% for facture in factures %}
+                    <option value="{{ facture.pk }}">Facture {{ facture.facture_id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Select Commands -->
+        <div class="mb-4">
+            <label for="commandSelect" class="form-label">Select Commands:</label>
+            <select id="commandSelect" name="selected_commands" class="form-select" multiple required>
+                <!-- Dynamically populated via JavaScript -->
+            </select>
+        </div>
+
+        <!-- Reason for Return -->
+        <div class="mb-4">
+            <label for="raison_retour" class="form-label">Reason for Return:</label>
+            <textarea id="raison_retour" name="raison_retour" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <!-- Return Date -->
+        <div class="mb-4">
+            <label for="date_retour" class="form-label">Return Date:</label>
+            <input type="date" id="date_retour" name="date_retour" class="form-control" required>
+        </div>
+
+        <!-- Supplier -->
+        <div class="mb-3">
+            <select name="supplier" id="supplier" class="form-select" required>
+                <option value="" disabled selected>Choose a supplier</option>
+                {% for supplier in suppliers %}
+                    <option value="{{ supplier.pk }}">{{ supplier.supplier_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Delivery Person -->
+        <div class="mb-4">
+            <label for="livreur" class="form-label">Select Delivery Person:</label>
+            <select id="livreur" name="livreur" class="form-select" required>
+                <option value="" disabled selected>Choose a Delivery Person</option>
+                {% for livreur in livreurs %}
+                    <option value="{{ livreur.pk }}">{{ livreur.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="mb-4">
+            <label for="informations_supp" class="form-label">Additional Information:</label>
+            <textarea id="informations_supp" name="informations_supp" class="form-control" rows="2" required></textarea>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex flex-column align-items-center gap-3 mt-4">
+            <button type="submit" class="btn btn-lg btn-primary w-100 fs-6 btn-custom">Submit Return</button>
+            <button type="button" class="btn btn-lg btn-primary w-100 fs-6 btn-custom" onclick="window.print()">Print Retour Note</button>
+            <a href="{% url 'all_retour' %}" class="btn btn-outline-primary  w-100">Show All Returns</a>
+        </div>
+
+    </form>
 </div>
-    
 
-  
+{% block extra_scripts %}
+<script src="{% static 'add_retour.js' %}"></script>
+{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const factureSelect = document.getElementById("factureSelect"); // Dropdown for selecting factures
-            const commandSelect = document.getElementById("commandSelect"); // Multi-select dropdown for commands
-            const submitButton = document.querySelector("button[type='submit']"); // Submit button for the form
-            const reasonInput = document.getElementById("raison_retour"); // Input field for return reason
-            const dateInput = document.getElementById("date_retour"); // Input field for return date
-            const supplierSelect = document.getElementById("supplier"); // Dropdown for selecting suppliers
-            console.log("Supplier Select:", supplierSelect); 
-            const deliveryPersonSelect = document.getElementById("livreur"); // Dropdown for selecting delivery persons
-            const additionalInfoTextarea = document.getElementById("informations_supp"); // Textarea for additional information
-            const errorContainer = document.createElement("div"); // Container for error messages
-            errorContainer.className = "alert alert-danger mt-3"; // Bootstrap styling for error messages
-            errorContainer.style.display = "none"; // Initially hidden
-            document.getElementById("retourForm").prepend(errorContainer); // Add it to the form
-    
-            // Event listener for when the facture dropdown value changes
-            factureSelect.addEventListener("change", function () {
-                const factureId = this.value;
-                console.log("Selected Facture ID:", factureId); // Debugging line
-                commandSelect.innerHTML = '<option value="" disabled>Loading commands...</option>'; // Temporary state
-    
-                if (factureId) {
-                    // Fetch commands related to the selected facture
-                    fetch(`/apps/get_commands/${factureId}/`)
-                        .then(response => {
-                            console.log("Response Status:", response.status); // Debug response status
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log("Fetched Commands:", data); // Debug fetched commands
-                            commandSelect.innerHTML = "";
-                            data.commands.forEach(command => {
-                                const option = document.createElement("option");
-                                option.value = command.id;
-                                option.textContent = `Command ${command.id} - ${command.description}`;
-                                commandSelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            console.error("Error fetching commands:", error);
-                            commandSelect.innerHTML = '<option value="" disabled>Error loading commands</option>';
-                        });
-                }
-            });
-    
-            // Helper function to display error messages
-            function showError(message) {
-                errorContainer.textContent = message;
-                errorContainer.style.display = "block";
-            }
-    
-            // Helper function to clear error messages
-            function clearError() {
-                errorContainer.style.display = "none";
-                errorContainer.textContent = "";
-            }
-    
-            // Event listener for form submission to validate the data before sending it
-            submitButton.addEventListener("click", function (event) {
-                event.preventDefault(); // Prevent default form submission
-    
-                clearError(); // Clear any existing error messages
-    
-                // Validate required fields
-                if (!factureSelect.value) {
-                    showError("Please select a facture.");
-                    return;
-                }
-    
-                const selectedCommands = Array.from(commandSelect.selectedOptions).map(option => option.value);
-                if (selectedCommands.length === 0) {
-                    showError("Please select at least one command.");
-                    return;
-                }
-    
-                if (!supplierSelect.value) {
-                    showError("Please select a supplier.");
-                    return;
-                }
-    
-                if (!reasonInput.value.trim()) {
-                    showError("Please provide a reason for the return.");
-                    return;
-                }
-    
-                if (!dateInput.value) {
-                    showError("Please select a return date.");
-                    return;
-                }
-    
-                if (!deliveryPersonSelect.value) {
-                    showError("Please select a delivery person.");
-                    return;
-                }
-    
-                // If all validations pass, prepare payload for submission
-                const payload = {
-                    facture: factureSelect.value,
-                    selected_commands: selectedCommands,
-                    supplier: supplierSelect.value,
-                    raison_retour: reasonInput.value.trim(),
-                    date_retour: dateInput.value,
-                    livreur: deliveryPersonSelect.value,
-                    informations_supp: additionalInfoTextarea.value.trim(),
-                };
-                console.log("Supplier Select:", supplierSelect.value);  
-                console.log("Payload to send:", payload); // Deb
-    
-                fetch("/apps/add_retour", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    },
-                    body: JSON.stringify(payload),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Response from server:", data);
-                    if (data.success) {
-                        alert("Return processed successfully.");
-                        // La redirection sera maintenant gérée côté backend, donc pas besoin de rediriger ici
-                    } else {
-                        showError(`Error: ${data.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error submitting the form:", error);
-                });
-                  
-            });
-        });
-    </script>
-    <style>
-        body {
-            padding-top: 70px; 
-            padding-bottom: 50px; /* Adjust based on footer height if necessary */
-        }
-    
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1030; /* Ensure it stays on top */
-        }
-    
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            z-index: 1030; /* Ensure it stays on top */
-        }
-    </style>
-    
-    
-</body>
-</html>
+{% endblock %}

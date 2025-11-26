@@ -18,12 +18,13 @@
                 <div class="input-group mb-3 d-flex justify-content-center">
                 {{ form.password }}
                 </div>
+{% if error_message %}
+<div class="alert alert-danger text-center">
+    {{ error_message }}
+</div>
+{% endif %}
 
-                <div class="input-group mb-3 d-flex justify-content-center">
-                {% if error_message %}
-                <p style="color:red">{{ error_message }}</p>
-                {% endif %}
-                </div>
+
 
                 <div class="input-group mb-3 d-flex justify-content-center">
                 <button class="btn btn-primary w-100 mt-3">Login</button>

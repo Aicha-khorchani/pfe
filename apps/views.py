@@ -2568,6 +2568,7 @@ def search_command(request):
 
 
 def login_view(request):
+    error_message = None
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -2575,23 +2576,22 @@ def login_view(request):
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                print(f"Authenticated user: {user.username}, user type: {user.user_type}")
                 login(request, user)
-                
                 if user.user_type == 'livreur':
-                    print("Redirecting to livreur page")
-                    return redirect('livreur') 
+                    return redirect('livreur')
                 elif user.user_type == 'admin':
-                    print("Redirecting to admin page")
-                    return redirect('admin') 
+                    return redirect('admin')
                 else:
-                    print("Redirecting to home page")
-                    return redirect('home') 
+                    return redirect('home')
             else:
-                return render(request, 'login.html', {'form': form, 'error_message': 'Invalid username or password'})
-    else:
-        form = LoginForm()
-    return render(request, 'login.html', {'form': form})
+                error_message = "Invalid username or password."
+        return render(request, "login.html", {
+            "form": form,
+            "error_message": error_message,
+        })
+    form = LoginForm()
+    return render(request, "login.html", {"form": form})
+
 
 
 def  logout_view(request):
