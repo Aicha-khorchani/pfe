@@ -33,10 +33,40 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
-            </li>
-        </ul>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li> 
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
     </nav>
@@ -46,109 +76,116 @@
         <form method="POST">
             {% csrf_token %}
             {{ formset.management_form }}
-
+        
+            <!-- Reception Note Details -->
             <div class="row justify-content-center">
-                <!-- Box 1 -->
                 <div class="col-md-12 mb-4">
-                    <div class="border rounded-5 p-4 bg-white shadow box-shadow" style="width: 95%; margin: 0 auto;">
+                    <div class="border rounded-5 p-4 bg-white shadow box-shadow">
                         <h4 class="border-bottom pb-2 mb-4 text-primary">Reception Note Details</h4>
                         <div class="mb-3">
                             <label for="delivery_address" class="form-label">Reception Address</label>
-                            <input type="text" id="delivery_address" name="delivery_address" class="form-control" required>
+                            <input type="text" id="delivery_address" name="delivery_address" class="form-control"
+                                value="{{ form.instance.delivery_address }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="delivery_date" class="form-label">Reception Date</label>
-                            <input type="date" id="delivery_date" name="delivery_date" class="form-control" required>
+                            <input type="date" id="delivery_date" name="delivery_date" class="form-control"
+                                value="{{ form.instance.delivery_date }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="supplier" class="form-label">Select Supplier</label>
                             <select name="supplier" id="supplier" class="form-select" required>
-                                <option value="" disabled selected>Choose a supplier</option>
+                                <option value="" disabled>Choose a supplier</option>
                                 {% for supplier in suppliers %}
-                                    <option value="{{ supplier.pk }}">{{ supplier.supplier_name }}</option>
+                                <option value="{{ supplier.pk }}" {% if supplier.pk == form.instance.supplier_id %}selected{% endif %}>
+                                    {{ supplier.supplier_name }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
                     </div>
                 </div>
-    
-                <!-- Box 2 -->
+        
+                <!-- Product and Variant Combinations -->
                 <div class="col-md-12 mb-4">
-                    <div class="border rounded-5 p-4 bg-white shadow box-shadow" style="width: 95%; margin: 0 auto;">
+                    <div class="border rounded-5 p-4 bg-white shadow box-shadow">
                         <h4 class="border-bottom pb-2 mb-4 text-primary">Product and Variant Combinations</h4>
-                        <table class="table table-bordered align-middle" style="width: 100%; table-layout: fixed;">
+                        <table class="table table-bordered align-middle">
                             <thead class="table-primary">
                                 <tr>
-                                    <th style="width: 18%;">Product</th>
-                                    <th style="width: 16%;">Variant</th>
-                                    <th style="width: 16%;">Value</th>
-                                    <th style="width: 16%;">Variant</th>
-                                    <th style="width: 16%;">Value</th>
-                                    <th style="width: 10%;">Quantity</th>
-                                    <th style="width: 8%;">Action</th>
+                                    <th>Product</th>
+                                    <th>Variant</th>
+                                    <th>Value</th>
+                                    <th>Variant</th>
+                                    <th>Value</th>
+                                    <th>Quantity</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="variant-combinations">
+                                {% for form_line in formset %}
                                 <tr>
                                     <td>
-                                        <select name="lines-0-item" class="form-select item-select" required>
-                                            <option value="" disabled selected>Choose a product</option>
+                                        <select name="{{ form_line.prefix }}-item" class="form-select item-select" required>
+                                            <option value="" disabled>Choose a product</option>
                                             {% for item in items %}
-                                                <option value="{{ item.item }}">{{ item.product_name }}</option>
+                                                <option value="{{ item.item }}" {% if item == form_line.instance.item %}selected{% endif %}>
+                                                    {{ item.product_name }}
+                                                </option>
                                             {% endfor %}
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="lines-0-variant_1" class="form-select variant-select">
-                                            <option value="" disabled selected>Choose a variant</option>
+                                        <select name="{{ form_line.prefix }}-variant_1" class="form-select variant-select">
+                                            <option value="" disabled>Choose a variant</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="lines-0-variant_value_1" class="form-select value-select">
-                                            <option value="" disabled selected>Choose a value</option>
+                                        <select name="{{ form_line.prefix }}-variant_value_1" class="form-select value-select">
+                                            <option value="" disabled>Choose a value</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="lines-0-variant_2" class="form-select variant-select">
-                                            <option value="" disabled selected>Choose a variant</option>
+                                        <select name="{{ form_line.prefix }}-variant_2" class="form-select variant-select">
+                                            <option value="" disabled>Choose a variant</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <select name="lines-0-variant_value_2" class="form-select value-select">
-                                            <option value="" disabled selected>Choose a value</option>
+                                        <select name="{{ form_line.prefix }}-variant_value_2" class="form-select value-select">
+                                            <option value="" disabled>Choose a value</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="number" name="lines-0-quantity" class="form-control" min="1" required>
+                                        <input type="number" name="{{ form_line.prefix }}-quantity" class="form-control" value="{{ form_line.instance.quantity }}" min="1" required>
                                     </td>
                                     <td>
-                                        <input type="hidden" name="lines-0-variant_combination"> <!-- Hidden field for combination -->
+                                        <input type="hidden" name="{{ form_line.prefix }}-variant_combination" value="{{ form_line.instance.variant_combination|default:"{}" }}">
                                         <button type="button" class="btn btn-danger remove-row">Remove</button>
                                     </td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
+                            
                         </table>
-                        
-                        
-                        <div class="mt-3 text-center">
-                            <button type="button" class="btn btn-success" id="add-row" data-bs-toggle="tooltip" data-bs-placement="top" title="Add another combination to the table.">
-                                Add Another Combination
-                            </button>
-                             </div>
+                        <button type="button" class="btn btn-success mt-3" id="add-row">Add Another Combination</button>
                     </div>
                 </div>
             </div>
+        
+            <!-- Actions -->
             <div class="row justify-content-center">
                 <div class="col-md-10 d-flex justify-content-center gap-3 mt-4">
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        Add Reception Note
-                            <span id="loading-spinner" class="spinner-border spinner-border-sm d-none"></span>
-                    </button>
-                    <button type="submit" class="btn btn-secondary" onclick="window.print()">Print Reception Note</button>
-                    <a href="{% url 'all_bonreception' %}" class="btn btn-outline-primary">Show Reception Notes</a>
+                    <button type="submit" class="btn btn-primary">add</button>
+                    <a href="{% url 'all_bonreception' %}" class="btn btn-outline-primary">Back</a>
+                    <button type="submit" class="btn btn-primary" onclick="window.print()">Print</button>
                 </div>
             </div>
         </form>
+        
+        
+        
+        
+        
 
     </div>
     
@@ -202,136 +239,160 @@
 
 
 
-
-
-
-
+   
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM fully loaded and script initialized.');
-        
-            const variantData = {{ variant_data|safe }};
+            const variantData = {{ variant_data|safe }}; // Preloaded variants data
             const tableBody = document.getElementById('variant-combinations');
             const addRowButton = document.getElementById('add-row');
-        
-            // Listener for form submission
-            document.querySelector('form').addEventListener('submit', function (e) {
-                console.log('Preparing to submit...');
-                const rows = document.querySelectorAll('#variant-combinations tr');
-        
-                rows.forEach((row, index) => {
-                    const item = document.querySelector('.item-select').value;  // Always take the first item-select
-                    const variants = {};
-        
-                    row.querySelectorAll('.variant-select').forEach((variantSelect, idx) => {
-                        const variantName = variantSelect.value;
-                        const valueSelect = row.querySelector(`.value-select[name="lines-${index}-variant_value_${idx + 1}"]`);
-                        if (variantName && valueSelect && valueSelect.value) {
-                            variants[variantName] = valueSelect.value;
+    
+            // Reset the first row on page load
+            function resetFirstRow() {
+                const firstRow = tableBody.rows[0];
+                if (firstRow) {
+                    firstRow.querySelectorAll('input, select').forEach((input) => {
+                        input.value = ''; // Clear all values
+                        if (input.name) {
+                            input.name = input.name.replace(/\d+/, 0); // Reset name indices
                         }
                     });
-        
-                    const variantCombinationInput = row.querySelector(`input[name="lines-${index}-variant_combination"]`);
-                    if (variantCombinationInput) {
-                        variantCombinationInput.value = JSON.stringify(variants);
-                    }
-        
-                    if (!item || Object.keys(variants).length === 0) {
-                        e.preventDefault();
-                        console.error(`Row ${index + 1}: Missing required fields.`);
-                        alert(`Row ${index + 1}: Please complete all required fields.`);
+    
+                    populateVariants(firstRow, null); // Reset variants and values
+                }
+            }
+    
+            // Populate variants and their values dynamically
+            function populateVariants(row, productId) {
+                const variantSelects = row.querySelectorAll('.variant-select');
+                const valueSelects = row.querySelectorAll('.value-select');
+    
+                // Reset variants and values dropdowns
+                variantSelects.forEach(select => {
+                    select.innerHTML = '<option value="" disabled selected>Choose a variant</option>';
+                    if (productId && variantData[productId]) {
+                        Object.keys(variantData[productId]).forEach(variant => {
+                            const option = document.createElement('option');
+                            option.value = variant;
+                            option.textContent = variant;
+                            select.appendChild(option);
+                        });
                     }
                 });
-            });
-        
-            // Populate variants and their values dynamically
+    
+                valueSelects.forEach(select => {
+                    select.innerHTML = '<option value="" disabled selected>Choose a value</option>';
+                });
+            }
+    
+            // Update the `variant_combination` hidden input for a row
+            function updateVariantCombination(row, rowIndex) {
+                const variants = {};
+    
+                row.querySelectorAll('.variant-select').forEach((variantSelect, idx) => {
+                    const variantName = variantSelect.value;
+                    const valueSelect = row.querySelector(`.value-select[name="lines-${rowIndex}-variant_value_${idx + 1}"]`);
+                    if (variantName && valueSelect && valueSelect.value) {
+                        variants[variantName] = valueSelect.value;
+                    }
+                });
+    
+                const variantCombinationInput = row.querySelector(`input[name="lines-${rowIndex}-variant_combination"]`);
+                if (variantCombinationInput) {
+                    variantCombinationInput.value = JSON.stringify(variants);
+                }
+            }
+    
+            // Event listener for changes in product and variant selections
             tableBody.addEventListener('change', function (event) {
                 const row = event.target.closest('tr');
+                const rowIndex = Array.from(tableBody.children).indexOf(row);
                 const productId = row.querySelector('.item-select')?.value;
-        
+    
+                if (event.target.classList.contains('item-select')) {
+                    populateVariants(row, productId); // Update variants based on the product
+                }
+    
                 if (event.target.classList.contains('variant-select')) {
-                    // Update value dropdown based on the selected variant
                     const variant = event.target.value;
                     const valueSelect = row.querySelector(`.value-select[name="${event.target.name.replace('variant', 'variant_value')}"]`);
-        
-                    // Clear existing options
+    
                     valueSelect.innerHTML = '<option value="" disabled selected>Choose a value</option>';
-        
-                    if (variantData[productId] && variantData[productId][variant]) {
+                    if (productId && variantData[productId] && variantData[productId][variant]) {
                         variantData[productId][variant].forEach(value => {
                             const option = document.createElement('option');
                             option.value = value;
                             option.textContent = value;
                             valueSelect.appendChild(option);
                         });
-                    } else {
-                        console.warn(`No values found for variant "${variant}" in product ID "${productId}"`);
                     }
                 }
-        
-                if (event.target.classList.contains('item-select')) {
-                    // Update variants based on selected product
-                    const variantSelects = row.querySelectorAll('.variant-select');
-                    const valueSelects = row.querySelectorAll('.value-select');
-        
-                    variantSelects.forEach(select => {
-                        select.innerHTML = '<option value="" disabled selected>Choose a variant</option>';
-                        if (variantData[productId]) {
-                            Object.keys(variantData[productId]).forEach(variant => {
-                                const option = document.createElement('option');
-                                option.value = variant;
-                                option.textContent = variant;
-                                select.appendChild(option);
-                            });
-                        }
-                    });
-        
-                    valueSelects.forEach(select => {
-                        select.innerHTML = '<option value="" disabled selected>Choose a value</option>';
-                    });
-                }
+    
+                updateVariantCombination(row, rowIndex); // Update hidden input for the row
             });
-        
+    
             // Add a new row
             addRowButton.addEventListener('click', function () {
-                console.log('Adding a new row...');
                 const newRow = tableBody.rows[0].cloneNode(true);
-        
+                const newRowIndex = tableBody.rows.length;
+    
                 newRow.querySelectorAll('input, select').forEach((input) => {
-                    input.value = '';
+                    input.value = ''; // Clear values for the new row
                     const nameAttr = input.getAttribute('name');
                     if (nameAttr) {
-                        const updatedName = nameAttr.replace(/\d+/, tableBody.rows.length);
-                        input.setAttribute('name', updatedName);
+                        input.name = nameAttr.replace(/\d+/, newRowIndex);
                     }
                 });
-        
+    
                 tableBody.appendChild(newRow);
                 updateTotalForms();
             });
-        
-            // Remove a row
-            tableBody.addEventListener('click', function (event) {
-                if (event.target.classList.contains('remove-row')) {
-                    if (tableBody.rows.length > 1) {
-                        event.target.closest('tr').remove();
-                        updateTotalForms();
-                    }
-                }
-            });
-        
+    
+            // Update total forms count
             function updateTotalForms() {
                 const totalForms = document.querySelector('input[name="lines-TOTAL_FORMS"]');
                 totalForms.value = tableBody.rows.length;
-                console.log('Updated TOTAL_FORMS:', totalForms.value);
             }
-        
-            updateTotalForms();
+    
+            // Remove a row
+            tableBody.addEventListener('click', function (event) {
+                if (event.target.classList.contains('remove-row') && tableBody.rows.length > 1) {
+                    event.target.closest('tr').remove();
+                    updateTotalForms();
+                }
+            });
+    
+            // Validate rows and prepare for submission
+            document.querySelector('form').addEventListener('submit', function (e) {
+                const rows = tableBody.querySelectorAll('tr');
+                let valid = true;
+    
+                rows.forEach((row, index) => {
+                    const item = row.querySelector('.item-select').value;
+                    updateVariantCombination(row, index); // Update hidden input
+    
+                    if (!item) {
+                        valid = false;
+                        alert(`Row ${index + 1}: Please select a product.`);
+                    }
+                });
+    
+                if (!valid) {
+                    e.preventDefault(); // Prevent form submission if validation fails
+                }
+            });
+    
+            resetFirstRow(); // Clear initial values for the first row
+            updateTotalForms(); // Initialize total forms count
         });
-        </script>
+    </script>
+    
+    
         
-        
-        
+    
+    
+    
+    
+    
     
         
 

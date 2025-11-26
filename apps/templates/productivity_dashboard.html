@@ -1,0 +1,729 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-gauge@3.0.0/dist/chartjs-chart-gauge.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-... your hash ..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>COM ARKEYEZ | Dashboard</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+
+    <div class="container-fluid">
+        <div class="row mt-4 align-items-stretch">
+    <div class="col-md-4 d-flex">
+        <div class="card bg-white flex-fill">
+            <div class="card-header bg-info text-white">
+                Information
+            </div>
+            <div class="card-body">
+                <marquee behavior="" direction="">
+                    <h3 class="my-4" style="color: black;">go digital with Arkeyez ERP return and losses dashboard</h3>
+                </marquee>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+        <!-- Home Card -->
+        <div class="col-md-8 d-flex">
+            <div class="card flex-fill">
+                <div class="card-header bg-info text-white">
+                    Home
+                </div>
+                <div class="card-body" style="background-color: #CCCCFF;">
+                    <div class="row">
+
+                        <div class="col-md-4">
+                            <a class="text-decoration-none text-dark" href="{% url 'partners' %}" data-toggle="tooltip" title="Total active partners in the system">
+                                <div class="card-body" style="background-color: rgba(255, 99, 132, 1); color: white; padding: 20px; text-align: center;">
+                                    <h4>Partners <i class="fas fa-users"></i></h4>
+                                    <h3>4</h3>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a class="text-decoration-none text-dark" href="{% url 'doc' %}" data-toggle="tooltip" title="manage invoice reception and return notes" >
+                                <div class="card-body" style="background-color: rgba(54, 162, 235, 1); color: white; padding: 20px; text-align: center;">
+                                    <h4>Documents <i class="fas fa-box"></i></h4>
+                                    <h3>4</h3>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a class="text-decoration-none text-dark" href="{% url 'stock' %}" data-toggle="tooltip" title="check stock availability and manage products cathalogue">
+                                <div class="card-body" style="background-color: rgba(75, 192, 192, 1); color: white; padding: 20px; text-align: center;">
+                                    <h4>Stock <i class="fas fa-shipping-fast"></i></h4>
+                                    <h3>4</h3>
+                                </div>
+                            </a>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container-fluid mt-1 d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+        <div class="row g-1 border rounded-5 p-2 bg-white shadow box-area" style="width: 100%;">
+
+                <!-- Left Box content here -->
+
+                <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box" style="background-color: #f0f0f0; height: 60vh;">
+                    <h4 class="text-dark mt-2">Livreur Performance</h4>
+                        <canvas id="livreurPerformanceChart"></canvas>
+                </div>
+                
+        
+<div class="col-md-6 d-flex justify-content-center align-items-center flex-column" style="height: 50vh;">
+    <h3 class="chart-title">Supplier Performance</h3>
+    <canvas id="supplierPerformanceChart" style="width: 100%; height: 100%;"></canvas>
+</div>
+            </div>
+        </div>
+    </div> 
+
+        <div class="row mt-4">
+            <div class="col-md-4 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="text-dark mt-2">customer retention rate</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="customerRetentionGaugeChart" style="width: 100%; height: 100%;"></canvas>
+                    </div>
+            </div>
+        </div>
+        <div class="col-md-8 d-flex">
+            <div class="card bg-white flex-fill">
+                <div class="card-header bg-info text-white">
+                        <h4 class="text-dark mt-2">General Productivity Information</h4>
+                    </div>
+                        <div id="general-productivity-info">
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    
+    <script>
+        // fetchi donne men view 
+        async function fetchData() {
+            try {
+                const response = await fetch('productivity_dashboard_data'); 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Fetched Data:", data); 
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null; 
+            }
+        }
+
+        function renderGeneralProductivityInfo(info) {
+            const container = document.getElementById('general-productivity-info');
+            if (!container) {
+                console.error("Element with id 'general-productivity-info' not found!");
+                return;
+            }
+        
+            container.innerHTML = `
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                    <thead>
+                     
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                Most Active Customer: ${info.most_active_customer?.customer__customer_name || 'N/A'} 
+                                with ${info.most_active_customer?.total_commands || 0} total commands.
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                ${renderInactiveCustomers(info.inactive_customers)}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                <strong>Best Supplier:</strong> ${info.best_supplier?.bon_reception__supplier__supplier_name || 'N/A'} 
+                                with a score of ${(info.best_supplier?.weighted_score || 0).toFixed(2)}.
+                                <br>
+                                Product Quality: ${info.best_supplier?.bon_reception__supplier__product_quality || 'N/A'}
+                                <br>
+                                Interaction Quality: ${info.best_supplier?.bon_reception__supplier__interaction_quality || 'N/A'}
+                                <br>
+                                Cost: ${info.best_supplier?.bon_reception__supplier__cost || 'N/A'}
+                                <br>
+                                Total Quantity Supplied: ${info.best_supplier?.total_quantity_supplied || 'N/A'}
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                <strong>Worst Supplier:</strong> ${info.worst_supplier?.bon_reception__supplier__supplier_name || 'N/A'} 
+                                with a score of ${(info.worst_supplier?.weighted_score || 0).toFixed(2)}.
+                                <br>
+                                Product Quality:${info.worst_supplier?.bon_reception__supplier__product_quality || 'N/A'}
+                                <br>
+                                Interaction Quality: ${info.worst_supplier?.bon_reception__supplier__interaction_quality || 'N/A'}
+                                <br>
+                                Cost: ${info.worst_supplier?.bon_reception__supplier__cost || 'N/A'}
+                                <br>
+                                Total Quantity Supplied:${info.worst_supplier?.total_quantity_supplied || 'N/A'}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                Top Delivery: ${info.top_livreur?.livreur_name || 'N/A'} 
+                                with ${info.top_livreur?.total_deliveries || 0} total deliveries.
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: left; color: black;">
+                                Least Active Delivery: ${info.least_active_livreur?.livreur_name || 'N/A'} 
+                                with ${info.least_active_livreur?.total_deliveries || 0} total deliveries.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+              
+  <p style="color: black;">
+            <strong>Best Customer by Spent Amount:</strong> ${info.get_best_customer_by_spent_amount?.customer__customer_name || 'N/A'} 
+            with total spent amount of ${info.get_best_customer_by_spent_amount?.total_spent || 0}.
+        </p>
+
+        <p style="color: black;">
+            <strong>Monthly Highest Value Command:</strong> ${info.get_monthly_highest_value_command?.customer__customer_name || 'N/A'} 
+            with a command value of $${info.get_monthly_highest_value_command?.total_amount || 0} 
+            for ${info.get_monthly_highest_value_command?.lines__product__product_name || 'N/A'} 
+            (variant: ${info.get_monthly_highest_value_command?.lines__variant_combination?.fabric || 'N/A'}).
+        </p>
+
+
+                <div><strong>Top Customers:</strong></div>
+                <div id="top-customers" style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    ${renderTopCustomers(info.top_customers)}
+                </div>
+            `;
+        }
+        
+        
+        
+
+// Function to render the top customers in a dynamic grid layout
+function renderTopCustomers(topCustomers) {
+    if (!topCustomers || topCustomers.length === 0) {
+        return `<p>No top customers available.</p>`;
+    }
+
+    let topCustomersHTML = `
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+    `;
+
+    // Loop through the top customers and render each one inside a styled "card"
+    topCustomers.forEach((customer, index) => {
+        topCustomersHTML += `
+            <div style="border: 1px solid #ddd; padding: 5px; border-radius: 8px; width: calc(20% - 10px); text-align: center;">
+                <h4 style="color: black; font-size: 14px; margin: 0;">Rank ${index + 1}</h4>
+                <p style="color: black; font-size: 12px; margin: 5px 0;">${customer.customer_name}</p>
+                <p style="color: black; font-size: 12px; margin: 5px 0;">Total Spent: $${customer.total_spent}</p>
+                <p style="color: black; font-size: 12px; margin: 5px 0;">Total Orders: ${customer.total_orders}</p>
+            </div>
+        `;
+    });
+
+    topCustomersHTML += `</div>`; // Close the container div
+
+    return topCustomersHTML; // Return the HTML for the top customers cards
+}
+
+// Function to render inactive customers as normal sentences
+function renderInactiveCustomers(inactiveCustomers) {
+    if (!inactiveCustomers || inactiveCustomers.length === 0) {
+        return `<p>No inactive customers available.</p>`;
+    }
+
+    let inactiveCustomersHTML = '';
+
+    // Loop through the inactive customers and render each one as a sentence
+    inactiveCustomers.forEach((customer) => {
+        inactiveCustomersHTML += `
+            <p style="color: black; text-align: left;">Inactive Customer: ${customer.customer_name}</p>
+        `;
+    });
+
+    return inactiveCustomersHTML; // Return the HTML for inactive customers as simple sentences
+}
+
+        
+
+
+ function renderCustomerRetentionGaugeChart(retentionData) {
+    const canvas = document.getElementById('customerRetentionGaugeChart');
+    if (!canvas) {
+        console.error("Element with id 'customerRetentionGaugeChart' not found!");
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const retentionRate = retentionData.retention_rate || 0;
+
+    // Radial gradient for the retention part (gradient from red to green)
+    const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0, // Center and inner radius
+        canvas.width / 2, canvas.height / 2, canvas.width / 2 // Center and outer radius
+    );
+    gradient.addColorStop(0, 'rgba(255, 99, 132, 1)'); // Red for retention
+    gradient.addColorStop(0.5, 'rgba(255, 193, 7, 1)'); // Yellow (transition)
+    gradient.addColorStop(1, 'rgba(40, 167, 69, 1)'); // Green for retention
+
+    // Darker color for the remaining part (darker gray)
+    const remainingColor = 'rgba(169, 169, 169, 0.7)'; // Darker gray for remaining part
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Retention Rate', 'Remaining'],
+            datasets: [{
+                data: [retentionRate, 100 - retentionRate],
+                backgroundColor: [gradient, remainingColor], // Use gradient for retention, dark gray for remaining
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true, // Maintain square aspect ratio
+            rotation: -Math.PI / 2, // Rotate so the chart starts from the top (12 o'clock)
+            circumference: 2 * Math.PI, // Full circle
+            cutout: '70%', // Inner circle for the gauge effect
+            plugins: {
+                legend: { 
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        color: 'black',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+}
+
+
+        
+    
+        function renderLivreurPerformanceChart(livreurData) {
+            const canvas = document.getElementById('livreurPerformanceChart');
+            if (!canvas) {
+                console.error("Element with id 'livreurPerformanceChart' not found!");
+                return;
+            }
+            
+            // Clear previous chart if it exists
+            if (canvas.chartInstance) {
+                canvas.chartInstance.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Adjust canvas size for better visibility
+            canvas.width = 800; // Make the chart wider
+            canvas.height = 400; // Make the chart taller
+        
+            const labels = livreurData.map(item => item.livreur_name || 'N/A');
+            const deliveriesData = livreurData.map(item => item.total_deliveries || 0);
+        
+            // Define custom colors for bars
+            const chartColors = [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(255, 99, 132, 0.8)'
+            ];
+        
+            const borderColors = chartColors.map(color => color.replace('0.8', '1'));
+        
+            // Create the bar chart
+            canvas.chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Deliveries',
+                        data: deliveriesData,
+                        backgroundColor: chartColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14 // Larger font size for the legend
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${tooltipItem.label}: ${tooltipItem.raw} deliveries`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Livreur Names',
+                                font: {
+                                    size: 16 // Larger font size for the x-axis title
+                                },
+                                color: 'rgba(54, 54, 54, 1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 14 // Larger font size for x-axis labels
+                                },
+                                color: 'rgba(54, 54, 54, 1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of Deliveries',
+                                font: {
+                                    size: 16 // Larger font size for the y-axis title
+                                },
+                                color: 'rgba(54, 54, 54, 1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 14 // Larger font size for y-axis labels
+                                },
+                                color: 'rgba(54, 54, 54, 1)',
+                                stepSize: 1 // Optional: Adjust based on your data range
+                            },
+                            grid: {
+                                color: 'rgba(200, 200, 200, 0.5)', // Lighter gridlines for better aesthetics
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+    
+        // Function to render the Supplier Performance Radar Chart
+        function renderSupplierPerformanceChart(supplierData) {
+            const canvas = document.getElementById('supplierPerformanceChart');
+            if (!canvas) {
+                console.error("Element with id 'supplierPerformanceChart' not found!");
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+        
+            // Extract labels and data from supplierData
+            const labels = supplierData.map(item => item.supplier_name || 'N/A');
+            const suppliedData = supplierData.map(item => item.total_supplied || 0);
+        
+            // Create the radar chart
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels, // Supplier names
+                    datasets: [{
+                        label: 'Total Supplied',
+                        data: suppliedData,
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: 'black', // Black text
+                                font: {
+                                    size: 16, // Larger font size
+                                    weight: 'bold' // Bold text
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${labels[tooltipItem.dataIndex]}: ${suppliedData[tooltipItem.dataIndex]}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)' // Subtle gridlines
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                display: true,
+                                color: 'black',
+                                font: {
+                                    size: 14, // Readable tick size
+                                    weight: 'bold'
+                                }
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14, // Bigger font for labels
+                                    weight: 'bold' // Bold text for supplier names
+                                },
+                                color: 'black', // Black labels
+                                padding: 10 // Add space between labels and chart
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        
+    
+        // Main rendering function
+        document.addEventListener('DOMContentLoaded', async () => {
+            const data = await fetchData(); // Fetch the data
+            if (data) {
+                renderGeneralProductivityInfo(data);
+                if (data.customer_retention_rate) renderCustomerRetentionGaugeChart(data.customer_retention_rate);
+                if (data.livreur_performance) renderLivreurPerformanceChart(data.livreur_performance);
+                if (data.supplier_performance) renderSupplierPerformanceChart(data.supplier_performance);
+            }
+        });
+    </script>
+    
+    
+    
+
+    <style>
+        
+        .gauge-marker {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .marker-0 {
+            top: 50%;
+            left: 0%;
+        }
+        
+        .marker-50 {
+            top: 50%;
+            left: 50%;
+        }
+        
+        .marker-100 {
+            top: 50%;
+            left: 85%;
+        }
+        canvas {
+            width: 400px !important;
+            height: 250px !important; 
+        }
+        .card {
+            border-radius: 10px; 
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); 
+            margin: 4px; 
+            padding: 10px; 
+     
+        
+        }
+        #customerRetentionGaugeChart {
+            width: 300px; /* Adjust size as needed */
+            height: 300px; /* Same as width for square aspect */
+        }
+        .card-body {
+            background-color: #f9f9f9; 
+            font-family: 'Arial', sans-serif; 
+            color: #103cbe;
+            padding: 10px;
+            display: flex; /* Use Flexbox for the canvas inside */
+            justify-content: center; /* Center horizontally */
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+        #livreurPerformanceChart {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #supplierPerformanceChart {
+            width: 500px; /* Set desired width */
+            height: 500px; /* Set desired height */
+        }
+        .box-area {
+            padding: 2rem;
+            margin: 1rem auto; 
+        }
+        
+        .card-header {
+            background-color: #103cbe !important;
+            color: #ffffff; 
+            padding: 10px;
+            font-size: 1.25rem; 
+            font-weight: bold; 
+        }
+        .shadow-card {
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px; 
+        }
+        
+        .general-productivity-info {
+                max-width: 90%; /* Allow the card to take up 90% of the available width */
+                margin: 0 auto; /* Center the card horizontally */
+                padding: 20px; /* Optional: Add some padding inside the card */
+                background-color: #fff; /* Optional: Set background color */
+                border-radius: 10px; /* Optional: Round the corners of the card */
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add some shadow for better visual effect */
+            }
+        
+        .general-productivity-info p {
+                padding: 5px 0; /* Reduce the padding between paragraphs */
+            }
+        
+        .general-productivity-info div, .general-productivity-info p {
+                text-align: left; /* Align text to the left for a cleaner look */
+                width: 100%; /* Ensure that elements take up the full width of the card */
+            }
+        
+        
+        
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    
+    .container {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100% 
+    }
+    
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0px;
+                background-color: #f4f4f9;
+                color: #333;
+                width: 100%;
+            }
+    
+    
+    
+    </style>
+    
+</body>
+</html>

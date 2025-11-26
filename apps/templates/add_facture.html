@@ -19,16 +19,55 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{% url 'stock' %}">Stock</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{% url 'doc' %}">Documents</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{% url 'partners' %}">Partners</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
                 </ul>
-                <form class="d-flex" method="GET" action="{% url 'search_facture' %}">
-                    {% csrf_token %}
-                    <input type="search" name="searched" id="searched" class="form-control me-2" placeholder="Search by facture...">
-                    <button class="btn btn-outline-light" type="submit">Search</button>
-                </form>
                 <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
@@ -102,7 +141,8 @@
                                 </a>
                             </div>
                             <div class="d-flex flex-column justify-content-center mt-3">
-                                <button class="btn btn-secondary w-100" type="submit">Print Invoice Note</button>
+                                <button type="submit" class="btn btn-secondary w-100" onclick="window.print()">Print</button>
+
                             </br>
                                 <a href="{% url 'get_all_factures' %}" class="btn btn-outline-primary w-100">Show Invoice Notes</a>
                             </div>
@@ -154,39 +194,110 @@
         document.addEventListener("DOMContentLoaded", function () {
             const customerField = document.getElementById("customer_id");
             const commandField = document.getElementById("command");
-    
-            // Listen for changes in the customer dropdown
+            const form = document.getElementById("FactureForm");
+        
+            // Error summary container
+            const errorSummary = document.createElement("div");
+            errorSummary.classList.add("alert", "alert-danger", "d-none"); // Hidden by default
+            form.insertBefore(errorSummary, form.firstChild); // Place error summary at the top
+        
+            // Clear all error messages
+            function clearErrors() {
+                errorSummary.classList.add("d-none"); // Hide error summary
+                errorSummary.innerHTML = ""; // Clear error summary content
+                form.querySelectorAll(".is-invalid").forEach((field) => {
+                    field.classList.remove("is-invalid");
+                    const feedback = field.parentElement.querySelector(".invalid-feedback");
+                    if (feedback) feedback.remove();
+                });
+            }
+        
+            // Display error message for a specific field
+            function showError(field, message) {
+                field.classList.add("is-invalid");
+                const errorDiv = document.createElement("div");
+                errorDiv.classList.add("invalid-feedback");
+                errorDiv.textContent = message;
+                field.parentElement.appendChild(errorDiv);
+            }
+        
+            // Dynamically update commands when customer changes
             customerField.addEventListener("change", function () {
                 const customerId = this.value;
-    
+        
                 // Clear the command dropdown
-                commandField.innerHTML = '<option value="" disabled selected>Select a command</option>';
-    
+                commandField.innerHTML = '<option value="" disabled>Select a command</option>';
+        
                 if (customerId) {
+                    console.log("Fetching commands for customer_id:", customerId);
+        
                     // Fetch commands for the selected customer
                     fetch(`/apps/add_facture/?customer_id=${customerId}`)
-                        .then(response => response.json())
-                        .then(data => {
+                        .then((response) => response.json())
+                        .then((data) => {
+                            console.log("Received data:", data);
+        
                             if (data.success) {
-                                // Populate the command dropdown with fetched data
-                                data.commands.forEach(command => {
-                                    const option = document.createElement("option");
-                                    option.value = command.id;
-                                    option.textContent = command.label;
-                                    commandField.appendChild(option);
-                                });
+                                if (data.commands.length > 0) {
+                                    data.commands.forEach((command) => {
+                                        const option = document.createElement("option");
+                                        option.value = command.id;
+                                        option.textContent = command.label;
+                                        commandField.appendChild(option);
+                                    });
+                                } else {
+                                    commandField.innerHTML = '<option value="" disabled>No commands available</option>';
+                                }
                             } else {
-                                alert("Failed to fetch commands. Please try again.");
+                                console.error("Failed to fetch commands:", data.message);
+                                showError(customerField, "Failed to fetch commands. Please try again.");
                             }
                         })
-                        .catch(error => {
-                            console.error("Error fetching commands:", error);
-                            alert("Failed to fetch commands. Please try again.");
+                        .catch((error) => {
+                            console.error("Error in fetch:", error);
+                            showError(customerField, "Error fetching commands. Please try again.");
                         });
                 }
             });
+        
+            // Validate form fields before submission
+            form.addEventListener("submit", function (event) {
+                clearErrors(); // Clear previous errors
+                let hasErrors = false;
+        
+                // Validate required fields
+                const requiredFields = ["datef", "addressf", "Payment_Method", "discount", "tax", "TTC"];
+                requiredFields.forEach((fieldId) => {
+                    const field = document.getElementById(fieldId);
+                    if (!field.value.trim()) {
+                        showError(field, "This field is required.");
+                        hasErrors = true;
+                    }
+                });
+        
+                // Validate customer and command fields
+                if (!customerField.value) {
+                    showError(customerField, "Please select a customer.");
+                    hasErrors = true;
+                }
+        
+                if (!commandField.selectedOptions.length) {
+                    showError(commandField, "Please select at least one command.");
+                    hasErrors = true;
+                }
+        
+                // If there are errors, prevent form submission
+                if (hasErrors) {
+                    errorSummary.textContent = "Please fix the highlighted errors before submitting.";
+                    errorSummary.classList.remove("d-none"); // Show error summary
+                    event.preventDefault(); // Prevent form submission
+                }
+            });
         });
+        
     </script>
+    
+    
     
     
     

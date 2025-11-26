@@ -37,10 +37,44 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
-            </li>
-        </ul>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
     </nav>
@@ -70,12 +104,9 @@
                         <th>Discount</th>
                         <th>Payment Method</th>
                         <th>TTC</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Variant</th>
+                        <th>Calculated Total</th>
                         <th>Customer</th>
-                        <th>order</th>
+                        <th>Commands</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -89,12 +120,13 @@
                         <td>{{ facture.discount }}</td>
                         <td>{{ facture.payment_method }}</td>
                         <td>{{ facture.ttc }}</td>
-                        <td>{{ facture.product.product_name }}</td>
-                        <td>{{ facture.qte_facture }}</td>
-                        <td>{{ facture.price }}</td>
-                        <td>{{ facture.variant.variant_name }}</td>
+                        <td>{{ facture.calculated_total }}</td>
                         <td>{{ facture.customer.customer_name }}</td>
-                        <td>{{ facture.command.Command_id }}</td>
+                        <td>
+                            {% for command in facture.commands.all %}
+                                {{ command.id }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
                         <td>
                             <a href="{% url 'update_facture' facture.facture_id %}">
                                 <button class="btn btn-sm btn-custom">Edit</button>
@@ -103,19 +135,16 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="13" class="text-center">No invoice available with that data.</td>
+                        <td colspan="11" class="text-center">No invoices available with that data.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            
         </div>
 
         <!-- Delete Button -->
-        <div class="input-group mb-3 d-flex justify-content-center">
-            <a href="{% url 'delete_facture' %}">
-                <button class="btn btn-lg btn-custom w-75 fs-6">Delete Facture</button>
-            </a>
-        </div>
+
     </div>
 
     <!-- Footer -->

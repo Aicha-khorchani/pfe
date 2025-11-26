@@ -31,10 +31,44 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'logout_view' %}">Logout</a>
-            </li>
-        </ul>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
             </div>
         </div>
     </nav>
@@ -57,15 +91,12 @@
                                 <th>id</th>
                                 <th>supplier</th>
                                 <th>Client</th>
-                                <th>Product</th>
-                                <th>variant</th>
-                                <th>Quantité</th>
+                                <th>factur</th>
                                 <th>Raison</th>
                                 <th>Date</th>
                                 <th>Livreur</th>
                                 <th>Info</th>
-                                <th>Numéro</th>
-                                <th>Statut</th>
+                               
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -74,19 +105,31 @@
                             <tr>
                                 <td>{{ retour.retour }}</td>
                                 <td>{{ retour.supplier.supplier_name }}</td> 
-                                <td>{{ retour.client.customer_name }}</td>
-                                <td>{{ retour.produit.product_name }}</td>
-                                <td>{{ retour.variant.variant_name }}</td>
-                                <td>{{ retour.quantite_retournee }}</td>
+                                <td>{{ retour.facture.customer.customer_name }}</td>
+                                <td>{{ retour.facture.facture_id }}</td> 
                                 <td>{{ retour.raison_retour }}</td>
                                 <td>{{ retour.date_retour }}</td>
                                 <td>{{ retour.livreur }}</td>
                                 <td>{{ retour.Informations_supp }}</td>
-                                <td>{{ retour.numero_c }}</td>
-                                <td>{{ retour.statut_retour }}</td>
-                                <td><a href="{% url 'update_retour' retour.retour %}"> 
-                                    <button class="btn btn-sm btn-custom">Edit</button>
-                                </a></td>
+                                <td>
+                                    <div class="d-flex justify-content-center action-buttons">
+                                        <a href="{% url 'update_retour' retour.retour %}">
+                                            <button class="btn btn-edit-product">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </a>
+                                        <a href="{% url 'delete_retour' retour.retour %}" onclick="return confirm('Are you sure you want to delete this return?')">
+                                            <button class="btn btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </a>
+                                        <a href="{% url 'add_retour' %}">
+                                            <button class="btn btn-primary">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -97,11 +140,7 @@
                     </table>
                 </div>
             </div>
-            <div class="input-group mb-3 d-flex justify-content-center">
-                <a href="{% url 'delete_retour' %}">
-                <button class="btn btn-lg btn-primary w-75 fs-6 btn-custom" style="min-width: 200px;">delete retour</button>
-                </a>
-            </div>
+         
         </div> 
     </div>
 
@@ -149,17 +188,53 @@
 
 
     <style>
+        .action-buttons a {
+            margin: 0 2px; /* Small space between buttons */
+        }
+        .action-buttons {
+            padding: 0 !important; /* Remove any padding from the container */
+            margin: 0 !important; /* Remove margin to prevent excessive space */
+            display: flex; /* Ensure correct layout */
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center; /* Optional: Center the buttons horizontally */
+            gap: 5px; /* Space between buttons */
+        }
+    
+        .action-buttons button {
+            font-size: 12px !important;
+            padding: 2px 4px !important;
+            height: 30px !important;
+            width: auto !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            min-width: 0 !important; /* Remove min-width */
+            max-width: none !important; /* Prevent max-width constraint */
+        }
+        
+        .action-buttons i {
+            font-size: 14px !important; /* Ensure icon size is adjusted */
+        }
+            .container {
+                max-width: 1200px; /* Adjust as needed */
+            }
+            table {
+                width: auto !important;
+            }
+       
+        
         .btn-custom {
             background-color: #007bff;
             color: white;
             border: none;
         }
-
+    
         .btn-custom:hover {
             background-color: #0056b3;
         }
-
-        /* For smaller buttons */
+    
         .btn-sm {
             font-size: 12px;
             padding: 0.25rem 0.5rem;

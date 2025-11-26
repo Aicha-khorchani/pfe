@@ -1,0 +1,488 @@
+{% load static %}
+{% load mathfilters %}
+<html lang="en">
+<head>
+    <title>Sales Dashboard</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <!--FontAwesome CDN-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+        integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+
+        
+    <!--Chartjs CDN-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <!--Custome CSS-->
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+    <title>Home Page</title>
+</head>
+
+<body>
+
+    <!--Navbar-->
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #103cbe;">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">ARKEYEZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'stock' %}">Stock</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'doc' %}">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'partners' %}">Partners</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" 
+                           class="nav-link dropdown-toggle text-white" 
+                           id="notificationDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false">
+                            Notifications
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            {% for notification in unread_notifications %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notification_detail' notification.id %}">
+                                        {{ notification.message }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item">No new notifications</span></li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a href="{% url 'notification_list' %}?filter=unread" class="dropdown-item">
+                                    View All Notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    
+                    
+                    
+                </ul>
+                <a class="btn btn-outline-light ms-2" href="{% url 'logout_view' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <!--End Navbar-->
+
+    <!--Topside-->
+    <div class="container-fluid">
+        <div class="row mt-4 align-items-stretch">
+
+            <div class="col-md-7 d-flex">
+                <div class="card bg-white flex-fill">
+                    <!-- Home Header -->
+                    <div class="card-header bg-info" style="color: #002147;">
+                        home
+                    </div>
+                    <div class="card-body" style="background-color: #CCCCFF;">
+                        <div class="row">
+                            <!-- Partners -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'partners' %}" data-toggle="tooltip" title="Total active partners in the system">
+                                    <div class="card-body" style="background-color: rgba(255, 99, 132, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Partners <i class="fas fa-users"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <!-- Documents -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'doc' %}" data-toggle="tooltip" title="Manage invoice reception and return notes">
+                                    <div class="card-body" style="background-color: rgba(54, 162, 235, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Documents <i class="fas fa-box"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                            <!-- Stock -->
+                            <div class="col-md-4">
+                                <a class="text-decoration-none" href="{% url 'stock' %}" data-toggle="tooltip" title="Check stock availability and manage products catalogue">
+                                    <div class="card-body" style="background-color: rgba(75, 192, 192, 1); color: #002147; padding: 20px; text-align: center;">
+                                        <h4>Stock <i class="fas fa-shipping-fast"></i></h4>
+                                        <h3>4</h3>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Marquee -->
+                        <marquee behavior="" direction="">
+                            <h3 class="my-4" style="color: #002147;">go digital with Arkeyez ERP sales dashboard</h3>
+                        </marquee>
+                    </div>
+                </div>
+            </div>
+            
+            
+
+            <div class="col-md-5 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info" style="color: #002147;">
+                        <h4>General Sales Information <i class="fas fa-calendar-day"></i></h4>
+                    </div>
+                    <!-- Apply background color to the card-body -->
+                    <div class="card-body" style="background-color: #f0f0f0;">
+                        <div id="generalInfoContainer"></div>
+                        <div id="dynamicCardContainer" class="card-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+    </div>
+    <!--End Topside-->
+
+    <!--Graphs-->
+    <div class="container-fluid">
+        <div class="row mt-4 align-items-stretch">
+            <!-- Monthly Sales Trends -->
+            <div class="col-md-6 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info" style="color: #002147;">
+                        <h4>Monthly Sales Trends <i class="fas fa-chart-line"></i></h4>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <!-- Canvas takes full width and height -->
+                        <canvas id="salesTrendsChart" style="width: 100%; height: 400px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex">
+                <div class="card bg-white flex-fill">
+                    <div class="card-header bg-info" style="color: #002147;">
+                        <h4>Best Selling Products <i class="fas fa-box"></i></h4>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <!-- Canvas takes full width and height -->
+                        <canvas id="bestSellingProductsChart" style="width: 100%; height: 400px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+            <!-- hoka i5dmo eli el fog elo lota le -->
+
+         
+
+                
+                </div>
+            </div>
+            
+    <!--End Graphs-->
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <script>
+        fetch('sales_dashboard_data')
+        .then(response => response.json())
+        .then(data => {
+            console.log("API Data:", data);
+            if (data.monthly_revenue && data.day_with_best_sales) {
+                const generalInfoContainer = document.getElementById('generalInfoContainer');
+                if (generalInfoContainer) {
+                    // Prepare data for rendering
+                    const { order_date: bestSalesDay, daily_sales: bestSalesRevenue } = data.day_with_best_sales;
+            
+                    // Structure HTML content
+                    generalInfoContainer.innerHTML = `
+                        <div style="text-align: left;">
+                            <ul style="list-style-type: none; padding: 0; color: black;">
+                                <li><strong>Total Revenue:</strong> $${(Number(data.monthly_revenue) || 0).toFixed(2)}</li>
+                                <li><strong>Day with Best Sales:</strong> ${bestSalesDay} - Revenue: $${(Number(bestSalesRevenue) || 0).toFixed(2)}</li>
+                            </ul>
+                            
+                        </div>
+                    `;
+                }
+            }
+    
+            // Render Monthly Sales Trends Chart
+            const salesTrendsCtx = document.getElementById("salesTrendsChart").getContext("2d");
+            new Chart(salesTrendsCtx, {
+                type: "line",
+                data: {
+                    labels: data.sales_labels,
+                    datasets: [{
+                        label: "Daily Sales",
+                        data: data.sales_values,
+                        backgroundColor: "rgba(54, 162, 235, 0.2)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                },
+            });
+    
+            // Render Best Selling Products Chart
+            const bestSellingCtx = document.getElementById("bestSellingProductsChart").getContext("2d");
+            new Chart(bestSellingCtx, {
+                type: "bar",
+                data: {
+                    labels: data.best_seller_labels,
+                    datasets: [{
+                        label: "Quantity Sold",
+                        data: data.best_seller_values,
+                        backgroundColor: [
+                            "rgba(255, 99, 132, 0.2)",
+                            "rgba(54, 162, 235, 0.2)",
+                        ],
+                        borderColor: [
+                            "rgba(255, 99, 132, 1)",
+                            "rgba(54, 162, 235, 1)",
+                        ],
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                },
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+        });
+    
+    </script>
+    <script>
+        fetch('sales_dashboard_data')
+            .then(response => response.json())
+            .then(data => {
+                console.log("API Data:", data);
+    
+                if (data.monthly_revenue && data.day_with_best_sales) {
+                    const generalInfoContainer = document.getElementById('generalInfoContainer');
+                    if (generalInfoContainer) {
+                        const { order_date: bestSalesDay, daily_sales: bestSalesRevenue } = data.day_with_best_sales;
+                        
+                        // Render the general info, including the new Monthly Highest Value Command
+                        generalInfoContainer.innerHTML = 
+                            `<div style="text-align: left;">
+                                <ul style="list-style-type: none; padding: 0; color: black;">
+                                    <li><strong>Total Revenue:</strong> $${(Number(data.monthly_revenue) || 0).toFixed(2)}</li>
+                                    <li><strong>Day with Best Sales:</strong> ${bestSalesDay} - Revenue: $${(Number(bestSalesRevenue) || 0).toFixed(2)}</li>
+                                    <li><strong>Monthly Highest Value Command:</strong> 
+                                        ${data.get_monthly_highest_value_command?.customer__customer_name || 'N/A'} 
+                                        with a command value of $${(Number(data.get_monthly_highest_value_command?.total_amount) || 0).toFixed(2)} 
+                                        for ${data.get_monthly_highest_value_command?.lines__product__product_name || 'N/A'} 
+                                        (variant: ${data.get_monthly_highest_value_command?.lines__variant_combination?.fabric || 'N/A'}).
+                                    </li>
+                                </ul>
+                            </div>`;
+                    }
+                }
+                // Render the dynamic card with the other data
+                const dynamicCardContainer = document.getElementById('dynamicCardContainer');
+                if (dynamicCardContainer) {
+                    // Check if the data is available for each category and render it
+                    const cardContent = `
+                        <div style="text-align: left; color: black;">
+                            <ul style="list-style-type: none; padding: 0;">
+                                <li><strong>Least Selling Product:</strong> ${data.least_seller ? data.least_seller.product_name : 'Data unavailable'} - Quantity Sold: ${data.least_seller ? data.least_seller.total_quantity_sold : 'N/A'}</li>
+                                <li><strong>Monthly Best Seller:</strong> ${data.monthly_best_seller ? data.monthly_best_seller.product_name : 'Data unavailable'} - Quantity Sold: ${data.monthly_best_seller ? data.monthly_best_seller.total_quantity_sold : 'N/A'}</li>
+                                <li><strong>Unsold Products:</strong> ${data.unsold_products.length > 0 ? data.unsold_products.map(product => product.product_name).join(', ') : 'No unsold products'}</li>
+                            </ul>
+                        </div>
+                    `;
+                    dynamicCardContainer.innerHTML = cardContent;
+                }
+    
+                // Render Monthly Sales Trends Chart
+                const salesTrendsCtx = document.getElementById("salesTrendsChart").getContext("2d");
+                new Chart(salesTrendsCtx, {
+                    type: "line",
+                    data: {
+                        labels: data.sales_labels,
+                        datasets: [{
+                            label: "Daily Sales",
+                            data: data.sales_values,
+                            backgroundColor: "rgba(54, 162, 235, 0.2)",
+                            borderColor: "rgba(54, 162, 235, 1)",
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                });
+    
+                // Render Best Selling Products Chart
+                const bestSellingCtx = document.getElementById("bestSellingProductsChart").getContext("2d");
+                new Chart(bestSellingCtx, {
+                    type: "bar",
+                    data: {
+                        labels: data.best_seller_labels,
+                        datasets: [{
+                            label: "Quantity Sold",
+                            data: data.best_seller_values,
+                            backgroundColor: [
+                                "rgba(255, 99, 132, 0.2)",
+                                "rgba(54, 162, 235, 0.2)",
+                            ],
+                            borderColor: [
+                                "rgba(255, 99, 132, 1)",
+                                "rgba(54, 162, 235, 1)",
+                            ],
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                            },
+                        },
+                    },
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+    </script>
+    
+    
+    
+
+    <!-- Optional JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF" crossorigin="anonymous"></script>
+    -->
+    <style>
+        .navbar {
+            background-color: #103cbe !important; 
+        }
+        
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .shadow-card {
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px; 
+        }
+        
+        .info-box-header {
+            background-color: #103cbe !important;
+            color: #ffffff; 
+        }
+        /* Card Shadow and Rounded Corners */
+.card {
+    border-radius: 10px; 
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15); 
+    margin: 4px; 
+    padding: 10px; 
+}
+
+.container {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100% 
+}
+
+.card-header {
+    padding: 10px;
+    font-size: 1.25rem; 
+    font-weight: bold;
+    background-color: #103cbe !important;
+    color: #ffffff; 
+}
+
+
+.card-body {
+    background-color: #f9f9f9; 
+    font-family: 'Arial', sans-serif; 
+    color: #103cbe;
+    padding: 10px;
+
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0px;
+    background-color: #f4f4f9;
+    color: #333;
+    width: 100%;
+}
+
+canvas {
+    margin-top: 10px; /* Adds spacing above charts */
+}
+
+.text-center h2 {
+        color: #103cbe;
+        font-weight: bold;
+    }
+
+    .chart-container {
+        width: 100%;
+        height: 300px; /* Adjust as needed */
+    }
+    
+
+    
+</style>
+</body>
+
+</html>

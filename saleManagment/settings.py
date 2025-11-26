@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps',
     'api',
+    'mathfilters',
 ]
 
 AUTH_USER_MODEL = 'apps.customuser'
@@ -110,7 +111,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-
+                'apps.context_processors.notification_context', 
             ],
         },
     },
