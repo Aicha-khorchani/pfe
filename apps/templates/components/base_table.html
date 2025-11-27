@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    {% include "components/navbar.html" %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Your Styles -->
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+    <title>{% block page_title %}{% endblock %}</title>
+
+    <style>
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-sm {
+            font-size: 12px;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .table th, .table td {
+            vertical-align: middle !important;
+            white-space: nowrap;
+        }
+
+        .table {
+            background: white;
+        }
+
+        .search-container input {
+            max-width: 260px;
+        }
+
+        body {
+            background-color: #f5f6fa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MAIN CONTENT -->
+    <div class="container mt-5">
+
+        <!-- Table Title -->
+        <h3 class="text-center mb-4">
+            {% block table_title %}{% endblock %}
+        </h3>
+
+        <!-- SEARCH BAR (optional) -->
+        <div class="search-container mb-4 d-flex justify-content-center">
+            {% block search_bar %}{% endblock %}
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        {% block table_headers %}{% endblock %}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% block table_rows %}{% endblock %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- OPTIONAL ACTIONS -->
+        <div class="d-flex justify-content-center mt-4">
+            {% block table_actions %}{% endblock %}
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% include "components/footer.html" %}
+
+</body>
+</html>

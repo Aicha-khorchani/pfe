@@ -10,3 +10,17 @@ def notification_context(request):
             'unread_count': unread_count,
         }
     return {}
+
+from .constants import GO_DIGITAL_TITLE, GO_DIGITAL_SUBTITLE,Hello_TITLE,Hello_SUBTITLE,Aicha,COM_AICHA
+
+def ui_constants(request):
+    return {
+        "GO_DIGITAL_TITLE": GO_DIGITAL_TITLE,
+        "GO_DIGITAL_SUBTITLE": GO_DIGITAL_SUBTITLE,
+        "Hello_TITLE": Hello_TITLE,
+        "Hello_SUBTITLE": Hello_SUBTITLE,
+        "Aicha":Aicha,
+        "COM_AICHA":COM_AICHA,
+
+    }
+
