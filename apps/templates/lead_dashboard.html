@@ -1,0 +1,32 @@
+{% extends 'components/base.html' %}
+{% block content %}
+
+<h2>Lead Prediction Dashboard</h2>
+
+{% if graph_html %}
+    <div>
+        {{ graph_html|safe }}
+    </div>
+{% else %}
+    <p>No lead data available.</p>
+{% endif %}
+
+<table>
+    <tr>
+        <th>Company</th>
+        <th>Status</th>
+        <th>Score</th>
+        <th>Expected Conversion (%)</th>
+    </tr>
+
+    {% for l in leads %}
+    <tr>
+        <td>{{ l.lead.company_name }}</td>
+        <td>{{ l.status }}</td>
+        <td>{{ l.score }}</td>
+        <td>{{ l.expected_conversion }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

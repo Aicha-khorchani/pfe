@@ -8937,3 +8937,722 @@ Traceback (most recent call last):
     raise self.error(token, msg)
 django.template.exceptions.TemplateSyntaxError: Unclosed tag on line 5: 'block'. Looking for one of: endblock.
 ERROR 2025-11-27 21:45:39,129 basehttp "GET /apps/allcustomers/ HTTP/1.1" 500 172111
+ERROR 2025-11-28 21:09:30,333 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 502, in parse
+    compile_func = self.tags[command]
+KeyError: 'endfor'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\engine.py", line 175, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\engine.py", line 157, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 504, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 555, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 41: 'endfor', expected 'endblock'. Did you forget to register or load this tag?
+ERROR 2025-11-28 21:09:30,366 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 181652
+ERROR 2025-11-28 21:13:41,396 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'deleteproduct' not found. 'deleteproduct' is not a valid view function or pattern name.
+ERROR 2025-11-28 21:13:41,412 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 180826
+ERROR 2025-11-28 21:14:19,765 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'deleteproduct' not found. 'deleteproduct' is not a valid view function or pattern name.
+ERROR 2025-11-28 21:14:19,790 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 180826
+ERROR 2025-11-28 21:15:22,476 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'product_delete' with no arguments not found. 1 pattern(s) tried: ['apps/product_delete/(?P<item_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:15:22,496 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 182770
+ERROR 2025-11-28 21:15:24,264 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'product_delete' with no arguments not found. 1 pattern(s) tried: ['apps/product_delete/(?P<item_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:15:24,282 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 182770
+ERROR 2025-11-28 21:18:55,883 log Internal Server Error: /apps/allproducts.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1363, in all_items
+    return render(request, 'allproducts.html', {'items': items, 'itemvariants': itemvariants})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'delete_note' with arguments '('',)' not found. 1 pattern(s) tried: ['apps/delete_note/(?P<note_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:18:55,899 basehttp "GET /apps/allproducts.html HTTP/1.1" 500 184252
+ERROR 2025-11-28 21:29:35,560 log Internal Server Error: /apps/all_bonreception
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 926, in all_bonreception
+    return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'delete_bonreception' with no arguments not found. 1 pattern(s) tried: ['apps/delete_bonreception/(?P<delivery_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:29:35,588 basehttp "GET /apps/all_bonreception HTTP/1.1" 500 169361
+ERROR 2025-11-28 21:30:39,502 log Internal Server Error: /apps/all_bonreception
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 926, in all_bonreception
+    return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'delete_bonreception' with arguments '('',)' not found. 1 pattern(s) tried: ['apps/delete_bonreception/(?P<delivery_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:30:39,525 basehttp "GET /apps/all_bonreception HTTP/1.1" 500 171100
+ERROR 2025-11-28 21:30:54,844 log Internal Server Error: /apps/all_bonreception
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 926, in all_bonreception
+    return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'delete_bonreception' with arguments '('',)' not found. 1 pattern(s) tried: ['apps/delete_bonreception/(?P<delivery_id>[0-9]+)/\\Z']
+ERROR 2025-11-28 21:30:54,863 basehttp "GET /apps/all_bonreception HTTP/1.1" 500 171102
+ERROR 2025-11-28 21:34:46,842 log Internal Server Error: /apps/all_bonreception
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 502, in parse
+    compile_func = self.tags[command]
+KeyError: 'endblock'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 926, in all_bonreception
+    return render(request, 'allreception.html', {'bonreceptions': bonreceptions})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\engine.py", line 175, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\engine.py", line 157, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 504, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 565, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 51: 'endblock'. Did you forget to register or load this tag?
+ERROR 2025-11-28 21:34:46,858 basehttp "GET /apps/all_bonreception HTTP/1.1" 500 166308
+ERROR 2025-11-28 21:49:37,608 log Internal Server Error: /apps/dashboard/leads/
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 134, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 131, in get_parent
+    return self.find_template(parent, context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 109, in find_template
+    template, origin = context.template.engine.find_template(
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\engine.py", line 161, in find_template
+    raise TemplateDoesNotExist(name, tried=tried)
+django.template.exceptions.TemplateDoesNotExist: base.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 2966, in lead_dashboard
+    return render(request, 'lead_dashboard.html', {
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 63, in render
+    reraise(exc, self.backend)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: base.html
+ERROR 2025-11-28 21:49:37,625 basehttp "GET /apps/dashboard/leads/ HTTP/1.1" 500 137575
+ERROR 2025-11-28 21:53:30,066 log Internal Server Error: /apps/leaddetail.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1359, in all_Details
+    return render(request, 'allleaddata.html', {'leaddatas': leaddatas})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'update_leaddata' not found. 'update_leaddata' is not a valid view function or pattern name.
+ERROR 2025-11-28 21:53:30,099 basehttp "GET /apps/leaddetail.html HTTP/1.1" 500 179012
+ERROR 2025-11-28 21:54:05,507 log Internal Server Error: /apps/dashboard/leads/
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 2942, in lead_dashboard
+    model = train_lead_model()
+  File "C:\workspace\projet\backend\saleManagment\apps\ml_model.py", line 23, in train_lead_model
+    model.fit(X, y)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\base.py", line 1365, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\linear_model\_logistic.py", line 1335, in fit
+    raise ValueError(
+ValueError: This solver needs samples of at least 2 classes in the data, but the data contains only one class: np.int64(0)
+ERROR 2025-11-28 21:54:05,514 basehttp "GET /apps/dashboard/leads/ HTTP/1.1" 500 86787
+ERROR 2025-11-28 21:55:31,821 log Internal Server Error: /apps/leaddetail.html
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 1359, in all_Details
+    return render(request, 'allleaddata.html', {'leaddatas': leaddatas})
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 241, in render
+    nodelist.append(node.render_annotated(context))
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\template\defaulttags.py", line 478, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\urls\resolvers.py", line 848, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'update_leaddata' not found. 'update_leaddata' is not a valid view function or pattern name.
+ERROR 2025-11-28 21:55:31,843 basehttp "GET /apps/leaddetail.html HTTP/1.1" 500 179607
+ERROR 2025-11-28 21:55:40,996 log Internal Server Error: /apps/dashboard/leads/
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 2942, in lead_dashboard
+    model = train_lead_model()
+  File "C:\workspace\projet\backend\saleManagment\apps\ml_model.py", line 23, in train_lead_model
+    model.fit(X, y)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\base.py", line 1365, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\linear_model\_logistic.py", line 1335, in fit
+    raise ValueError(
+ValueError: This solver needs samples of at least 2 classes in the data, but the data contains only one class: np.int64(0)
+ERROR 2025-11-28 21:55:40,996 basehttp "GET /apps/dashboard/leads/ HTTP/1.1" 500 87150
+ERROR 2025-11-28 21:55:46,075 log Internal Server Error: /apps/dashboard/leads/
+Traceback (most recent call last):
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\workspace\projet\backend\saleManagment\apps\views.py", line 2942, in lead_dashboard
+    model = train_lead_model()
+  File "C:\workspace\projet\backend\saleManagment\apps\ml_model.py", line 23, in train_lead_model
+    model.fit(X, y)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\base.py", line 1365, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "C:\workspace\projet\backend\saleManagment\venv\lib\site-packages\sklearn\linear_model\_logistic.py", line 1335, in fit
+    raise ValueError(
+ValueError: This solver needs samples of at least 2 classes in the data, but the data contains only one class: np.int64(0)
+ERROR 2025-11-28 21:55:46,075 basehttp "GET /apps/dashboard/leads/ HTTP/1.1" 500 87150

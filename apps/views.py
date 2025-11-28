@@ -1,5 +1,9 @@
 from django.contrib.messages import get_messages
 import json
+from django.shortcuts import render
+from .ml_model import train_lead_model, predict_conversion
+import pandas as pd
+import plotly.express as px
 from django.db.models.functions import TruncMonth
 from django.core.serializers.json import DjangoJSONEncoder
 from datetime import date, datetime, timedelta
@@ -2931,7 +2935,38 @@ def notification_list(request):
     })
 
 
+def lead_dashboard(request):
+    leads = leaddata.objects.all()
 
+    # Train ML model
+    model = train_lead_model()
+
+    # Build DataFrame for dashboard
+    df = pd.DataFrame(leads.values())
+    if not df.empty:
+        df['expected_conversion'] = 0
+
+        if model:
+            for index, row in df.iterrows():
+                lead_instance = leaddata.objects.get(id=row['id'])
+                df.at[index, 'expected_conversion'] = predict_conversion(model, lead_instance)
+
+        # Generate chart
+        fig = px.bar(
+            df,
+            x='sector',
+            y='expected_conversion',
+            color='status',
+            title='Lead Conversion Prediction by Sector'
+        )
+        graph_html = fig.to_html(full_html=False)
+    else:
+        graph_html = None
+
+    return render(request, 'lead_dashboard.html', {
+        'graph_html': graph_html,
+        'leads': leads,
+    })
 
 
 

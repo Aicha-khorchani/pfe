@@ -8,3 +8,6 @@ Hello_SUBTITLE = (
     )
 Aicha = "Aicha"
 COM_AICHA = "COM AICHA"
+Edit ="Edit"
+Delete="Delete"
+Search ="Search"
