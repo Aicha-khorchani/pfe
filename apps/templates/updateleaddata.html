@@ -1,0 +1,64 @@
+{% extends "components/base2.html" %}
+{% load static %}
+{% block title %} {{COM_AICHA}} | Add Order{% endblock %}
+
+{% block content %}
+
+            <div class="row align-items-center">
+                <div class="header-text mb-4"><h3>update leaddata</h3></div>
+                <form method="POST" id="commandForm">
+                    {% csrf_token %}
+                    
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Owner</label>
+    <input type="text" name="owner" class="form-control" value="{{ data.owner }}">
+
+    <label>Next Date</label>
+    <input type="date" name="nextdate" class="form-control" value="{{ data.nextdate|date:'Y-m-d' }}">
+
+    <label>Revenue</label>
+    <input type="number" name="revenue" step="0.001" class="form-control" value="{{ data.revenue }}">
+
+    <label>Size</label>
+    <input type="number" name="size" class="form-control" value="{{ data.size }}">
+
+    <label>Number</label>
+    <input type="number" name="number" class="form-control" value="{{ data.number }}">
+
+    <label>Score</label>
+    <input type="number" name="score" class="form-control" value="{{ data.score }}">
+
+    <label>Worker</label>
+    <input type="text" name="worker" class="form-control" value="{{ data.worker }}">
+
+    <label>Lead Source</label>
+    <input type="text" name="leadsrc" class="form-control" value="{{ data.leadsrc }}">
+
+    <label>Sector</label>
+    <input type="text" name="sector" class="form-control" value="{{ data.sector }}">
+
+    <label>Status</label>
+    <select name="status" class="form-control">
+        <option value="">--Select--</option>
+        <option value="new" {% if data.status == "new" %}selected{% endif %}>New</option>
+        <option value="contacted" {% if data.status == "contacted" %}selected{% endif %}>Contacted</option>
+        <option value="follow_up" {% if data.status == "follow_up" %}selected{% endif %}>Follow Up</option>
+        <option value="closed" {% if data.status == "closed" %}selected{% endif %}>Closed</option>
+    </select>
+
+    <label>Note</label>
+    <textarea name="note" class="form-control">{{ data.note }}</textarea>
+
+    <label>Contract File</label>
+    <input type="file" name="contract_file" class="form-control">
+
+    {% if data.contract_file %}
+        <p>Current file: <a href="{{ data.contract_file.url }}" target="_blank">View</a></p>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary mt-3">Update</button>
+</form>
+</div>
+{% endblock %}

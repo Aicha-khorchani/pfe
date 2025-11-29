@@ -1796,6 +1796,34 @@ def add_facture(request):
 
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import leaddata
+
+def update_leaddata(request, id):
+    leaddata_obj = get_object_or_404(leaddata, id=id)
+
+    if request.method == "POST":
+        leaddata_obj.owner = request.POST.get("owner")
+        leaddata_obj.nextdate = request.POST.get("nextdate")
+        leaddata_obj.revenue = request.POST.get("revenue")
+        leaddata_obj.size = request.POST.get("size")
+        leaddata_obj.number = request.POST.get("number")
+        leaddata_obj.score = request.POST.get("score")
+        leaddata_obj.worker = request.POST.get("worker")
+        leaddata_obj.leadsrc = request.POST.get("leadsrc")
+        leaddata_obj.sector = request.POST.get("sector")
+        leaddata_obj.status = request.POST.get("status")
+        leaddata_obj.note = request.POST.get("note")
+
+        # File upload (only update if new file uploaded)
+        if "contract_file" in request.FILES:
+            leaddata_obj.contract_file = request.FILES["contract_file"]
+
+        leaddata_obj.save()
+
+        return redirect("all_leads", id=leaddata_obj.id)  
+
+    return render(request, "updateleaddata.html", {"data": leaddata_obj})
 
 
 def updatelead(request, id):
@@ -2571,30 +2599,50 @@ def search_command(request):
 
 
 
+from django.contrib import messages
+
 def login_view(request):
     error_message = None
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+
+        # If form data is syntactically invalid, collect field errors
+        if not form.is_valid():
+            # optional: gather field errors into a single string for display
+            field_errors = []
+            for field, errors in form.errors.items():
+                for e in errors:
+                    field_errors.append(f"{field}: {e}")
+            error_message = "Please fix the form errors: " + "; ".join(field_errors)
+            # also attach this to messages so you can use messages framework if you prefer
+            messages.error(request, error_message)
+        else:
+            # form is valid => try to authenticate
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
             user = authenticate(request, username=username, password=password)
+
             if user is not None:
                 login(request, user)
-                if user.user_type == 'livreur':
+                if getattr(user, "user_type", None) == 'livreur':
                     return redirect('livreur')
-                elif user.user_type == 'admin':
+                elif getattr(user, "user_type", None) == 'admin':
                     return redirect('admin')
                 else:
                     return redirect('home')
             else:
                 error_message = "Invalid username or password."
-        return render(request, "login.html", {
-            "form": form,
-            "error_message": error_message,
-        })
-    form = LoginForm()
-    return render(request, "login.html", {"form": form})
+                messages.error(request, error_message)
+
+    else:
+        form = LoginForm()
+
+    return render(request, "login.html", {
+        "form": form,
+        "error_message": error_message,
+    })
+
 
 
 
@@ -2642,7 +2690,7 @@ def admin_user_create(request):
         if form.is_valid():
             admin_user = form.save(commit=False)
             admin_user.user_type = 'admin'
-            admin_user.set_password(form.cleaned_data['password1'])
+            admin_user.set_password(form.cleaned_data['password'])
             admin_user.save()
             messages.success(request, "Admin user created successfully.")
             return redirect('admin_user_list') 

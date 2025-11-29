@@ -11,8 +11,7 @@ def notification_context(request):
         }
     return {}
 
-from .constants import GO_DIGITAL_TITLE, GO_DIGITAL_SUBTITLE,Hello_TITLE,Hello_SUBTITLE,Aicha,COM_AICHA,Edit,Delete,Search
-
+from .constants import GO_DIGITAL_TITLE, GO_DIGITAL_SUBTITLE,Hello_TITLE,Hello_SUBTITLE,Aicha,COM_AICHA,Edit,Delete,Search,Login,Add_Order,Add_New_Order,The_list_of_all_products,Products
 def ui_constants(request):
     return {
         "GO_DIGITAL_TITLE": GO_DIGITAL_TITLE,
@@ -24,4 +23,9 @@ def ui_constants(request):
         "Edit":Edit,
         "Delete":Delete,
         "Search":Search,
+        "Login":Login,
+        "Add Order":Add_Order,
+        "Add a New Order":Add_New_Order,
+        "The list of all products":The_list_of_all_products,
+        "Products":Products,
     }

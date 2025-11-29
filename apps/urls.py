@@ -12,7 +12,7 @@ from .views import user_list,user_create,user_update,user_delete,admin_user_crea
 from .views import search_supplier,search_itemvariant,search_bonreception, search_leaddata,add_delivery,update_delivery,get_delivery,delete_delivery,search_delivery
 from .views import update_command,search_command,get_command,add_command,delete_command ,livreur_create_view,livreur ,add_note,edit_note,all_notes,delete_note, productivity_dashboard_page
 from .views import sales_dashboard_data,sales_dashboard_page ,stock_dashboard_page , returns_and_losses_dashboard ,returns_and_losses_page , productivity_dashboard_data,page
-from .views import lead_dashboard 
+from .views import lead_dashboard ,update_leaddata
 urlpatterns = [
     path('',login_view, name='login'),
     path('admin',admin, name='admin'),
@@ -109,6 +109,7 @@ urlpatterns = [
     path('updatelead/<int:id>/',updatelead, name='updatelead'),
     path('addleaddata.html', add_data, name='add_data'),
     path('leaddetail.html', all_Details, name='all_Details'),
+    path('update_leaddata/<int:id>/', update_leaddata, name='update_leaddata'),
     ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
